@@ -309,79 +309,6 @@
             box-shadow: 0 2px 4px rgba(198, 40, 40, 0.1);
         }
         
-        .install-btn {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
-            color: white;
-            border: none;
-            border-radius: 50px;
-            padding: 12px 30px;
-            font-size: 1em;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 6px 20px rgba(255, 87, 34, 0.4);
-            z-index: 1000;
-            display: none;
-            animation: bounce 2s infinite;
-            touch-action: manipulation;
-        }
-        
-        @keyframes bounce {
-            0%, 100% { transform: translateX(-50%) translateY(0); }
-            50% { transform: translateX(-50%) translateY(-10px); }
-        }
-        
-        .install-btn:active {
-            transform: translateX(-50%) translateY(2px);
-            box-shadow: 0 3px 10px rgba(255, 87, 34, 0.5);
-        }
-        
-        /* 添加提示横幅 */
-        .install-banner {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            background: linear-gradient(135deg, #2196f3 0%, #21cbf3 100%);
-            color: white;
-            padding: 12px 20px;
-            text-align: center;
-            font-size: 0.9em;
-            font-weight: 500;
-            z-index: 1001;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
-            display: none;
-        }
-        
-        .install-banner.android {
-            display: block;
-        }
-        
-        .install-banner.ios {
-            display: block;
-        }
-        
-        .install-banner .close-btn {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: rgba(255, 255, 255, 0.3);
-            border: none;
-            color: white;
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            font-size: 18px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
         /* 底部安全区域适配 */
         @supports (padding: max(0px)) {
             body {
@@ -438,18 +365,6 @@
     </style>
 </head>
 <body>
-    <div class="install-banner android" id="androidBanner">
-        点击浏览器菜单 → "添加到主屏幕" 可以像App一样使用！
-        <button class="close-btn" onclick="this.parentElement.style.display='none'">×</button>
-    </div>
-    
-    <div class="install-banner ios" id="iosBanner" style="display:none;">
-        点击分享按钮 → "添加到主屏幕" 可以像App一样使用！
-        <button class="close-btn" onclick="this.parentElement.style.display='none'">×</button>
-    </div>
-    
-    <button class="install-btn" id="installBtn">📱 安装到主屏幕</button>
-    
     <div class="container">
         <div class="header">
             <h1>日语元音练习</h1>
@@ -520,9 +435,6 @@
         const correctCountEl = document.getElementById('correctCount');
         const accuracyEl = document.getElementById('accuracy');
         const errorLogEl = document.getElementById('errorLog');
-        const installBtn = document.getElementById('installBtn');
-        const androidBanner = document.getElementById('androidBanner');
-        const iosBanner = document.getElementById('iosBanner');
         
         // 初始化选项按钮
         function initOptions() {
@@ -657,26 +569,6 @@
             }
         }
         
-        // 检测是否支持PWA安装
-        function checkPWAInstallability() {
-            // 检测是否为iOS设备
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-            // 检测是否为Android设备
-            const isAndroid = /Android/.test(navigator.userAgent);
-            // 检测是否已经安装（独立模式）
-            const isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
-                               window.navigator.standalone === true;
-            
-            if (!isStandalone) {
-                if (isIOS) {
-                    iosBanner.style.display = 'block';
-                    androidBanner.style.display = 'none';
-                } else if (isAndroid) {
-                    androidBanner.style.display = 'block';
-                }
-            }
-        }
-        
         // 注册Service Worker（用于离线支持）
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -714,42 +606,10 @@
         window.addEventListener('load', () => {
             initOptions();
             updateStatsDisplay();
-            checkPWAInstallability();
             
             // 关键修改：页面加载后立即显示第一个随机字符
             showNextCharacter();
-            
-            // 模拟PWA安装提示（实际需要beforeinstallprompt事件）
-            setTimeout(() => {
-                if (!window.matchMedia('(display-mode: standalone)').matches && 
-                    !window.navigator.standalone) {
-                    installBtn.style.display = 'block';
-                }
-            }, 3000);
         });
-        
-        // 安装按钮点击处理
-        installBtn.addEventListener('click', () => {
-            if (stats.deferredPrompt) {
-                stats.deferredPrompt.prompt();
-                stats.deferredPrompt.userChoice.then((choiceResult) => {
-                    if (choiceResult.outcome === 'accepted') {
-                        installBtn.style.display = 'none';
-                    }
-                    stats.deferredPrompt = null;
-                });
-            } else {
-                alert('请使用Chrome或Safari浏览器，点击菜单中的"添加到主屏幕"选项');
-            }
-        });
-        
-        // 隐藏安装按钮如果已经安装
-        if (window.matchMedia('(display-mode: standalone)').matches || 
-            window.navigator.standalone === true) {
-            installBtn.style.display = 'none';
-            androidBanner.style.display = 'none';
-            iosBanner.style.display = 'none';
-        }
     </script>
 </body>
 </html>
