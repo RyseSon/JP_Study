@@ -3,35 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#43a047">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="日语元音练习">
-    <meta name="description" content="日语5个元音的平假名和片假名练习应用">
+    <meta name="apple-mobile-web-app-title" content="日语あ行练习">
+    <meta name="description" content="日语あ行的平假名和片假名练习应用">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="data:application/manifest+json,{
-        %22name%22:%22日语元音练习%22,
-        %22short_name%22:%22日语练习%22,
-        %22description%22:%22日语5个元音的平假名和片假名练习应用%22,
+        %22name%22:%22日语あ行练习%22,
+        %22short_name%22:%22あ行练习%22,
+        %22description%22:%22日语あ行的平假名和片假名练习应用%22,
         %22start_url%22:%22.%22,
         %22display%22:%22standalone%22,
         %22background_color%22:%22%23ffffff%22,
-        %22theme_color%22:%22%23667eea%22,
+        %22theme_color%22:%22%2343a047%22,
         %22icons%22:[{
-            %22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='88' fill='%23667eea'/%3E%3Ctext x='96' y='115' font-family='Arial' font-size='80' fill='white' text-anchor='middle'%3E%EF%BD%B5%3C/text%3E%3C/svg%3E%22,
+            %22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='88' fill='%2343a047'/%3E%3Ctext x='96' y='115' font-family='Arial' font-size='80' fill='white' text-anchor='middle'%3E%EF%BD%B1%3C/text%3E%3C/svg%3E%22,
             %22sizes%22:%22192x192%22,
             %22type%22:%22image/svg+xml%22,
             %22purpose%22:%22any maskable%22
         },{
-            %22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Ccircle cx='256' cy='256' r='240' fill='%23667eea'/%3E%3Ctext x='256' y='310' font-family='Arial' font-size='200' fill='white' text-anchor='middle'%3E%EF%BD%B5%3C/text%3E%3C/svg%3E%22,
+            %22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Ccircle cx='256' cy='256' r='240' fill='%2343a047'/%3E%3Ctext x='256' y='310' font-family='Arial' font-size='200' fill='white' text-anchor='middle'%3E%EF%BD%B1%3C/text%3E%3C/svg%3E%22,
             %22sizes%22:%22512x512%22,
             %22type%22:%22image/svg+xml%22,
             %22purpose%22:%22any maskable%22
         }]
     }">
     
-    <title>日语元音练习 - あいうえお</title>
+    <title>日语あ行练习 - あいうえお</title>
     
     <style>
         * {
@@ -43,7 +43,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #43a047 0%, #00c853 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -76,7 +76,7 @@
             color: #333;
             font-size: 1.8em;
             margin-bottom: 8px;
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4);
+            background: linear-gradient(45deg, #66bb6a, #4fc3f7);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             font-weight: bold;
@@ -477,7 +477,7 @@
 <body>
     <div class="container">
         <div class="header">
-            <h1>日语元音练习</h1>
+            <h1>日语あ行练习</h1>
             <p class="subtitle">あ い う え お | ア イ ウ エ オ</p>
         </div>
         
@@ -553,18 +553,18 @@
     </div>
 
     <script>
-        // 日语元音数据
-        const japaneseVowels = [
-            { character: 'あ', kanaType: '平假名', romanji: 'a', errorCount: 0 },
-            { character: 'い', kanaType: '平假名', romanji: 'i', errorCount: 0 },
-            { character: 'う', kanaType: '平假名', romanji: 'u', errorCount: 0 },
-            { character: 'え', kanaType: '平假名', romanji: 'e', errorCount: 0 },
-            { character: 'お', kanaType: '平假名', romanji: 'o', errorCount: 0 },
-            { character: 'ア', kanaType: '片假名', romanji: 'a', errorCount: 0 },
-            { character: 'イ', kanaType: '片假名', romanji: 'i', errorCount: 0 },
-            { character: 'ウ', kanaType: '片假名', romanji: 'u', errorCount: 0 },
-            { character: 'エ', kanaType: '片假名', romanji: 'e', errorCount: 0 },
-            { character: 'オ', kanaType: '片假名', romanji: 'o', errorCount: 0 }
+        // あ行日语假名数据 - 彻底重构数据结构
+        const japaneseALine = [
+            { id: 'hiragana_a', character: 'あ', kanaType: '平假名', romanji: 'a', errorCount: 0 },
+            { id: 'hiragana_i', character: 'い', kanaType: '平假名', romanji: 'i', errorCount: 0 },
+            { id: 'hiragana_u', character: 'う', kanaType: '平假名', romanji: 'u', errorCount: 0 },
+            { id: 'hiragana_e', character: 'え', kanaType: '平假名', romanji: 'e', errorCount: 0 },
+            { id: 'hiragana_o', character: 'お', kanaType: '平假名', romanji: 'o', errorCount: 0 },
+            { id: 'katakana_a', character: 'ア', kanaType: '片假名', romanji: 'a', errorCount: 0 },
+            { id: 'katakana_i', character: 'イ', kanaType: '片假名', romanji: 'i', errorCount: 0 },
+            { id: 'katakana_u', character: 'ウ', kanaType: '片假名', romanji: 'u', errorCount: 0 },
+            { id: 'katakana_e', character: 'エ', kanaType: '片假名', romanji: 'e', errorCount: 0 },
+            { id: 'katakana_o', character: 'オ', kanaType: '片假名', romanji: 'o', errorCount: 0 }
         ];
         
         // 统计数据
@@ -572,19 +572,19 @@
             totalAttempts: 0,
             correctCount: 0,
             currentCharacter: null,
-            waitingForNext: false, // 初始状态不是等待下一个，而是等待回答
-            startTime: 0, // 记录字符显示的时间
-            reactionTimes: [], // 存储所有反应时间
-            hiraganaTimes: [], // 平假名反应时间
-            katakanaTimes: [], // 片假名反应时间
-            vowelTimes: { // 按元音分类的反应时间
+            waitingForNext: false,
+            startTime: 0,
+            reactionTimes: [],
+            hiraganaTimes: [],
+            katakanaTimes: [],
+            vowelTimes: {
                 a: [],
                 i: [],
                 u: [],
                 e: [],
                 o: []
             },
-            testActive: true // 测试是否进行中
+            testActive: true
         };
         
         // DOM元素
@@ -619,35 +619,33 @@
                 button.textContent = romanji;
                 button.dataset.romanji = romanji;
                 button.addEventListener('click', () => handleAnswer(romanji));
-                button.disabled = false; // 初始启用，等待用户选择
+                button.disabled = false;
                 optionsContainer.appendChild(button);
             });
         }
         
-        // 获取加权随机字符（错误次数越多，出现概率越高）
+        // 获取加权随机字符 - 基于唯一ID
         function getWeightedRandomCharacter() {
-            // 计算总权重（基础权重1 + 错误次数）
             let totalWeight = 0;
             const weights = [];
             
-            japaneseVowels.forEach(vowel => {
-                const weight = 1 + vowel.errorCount * 2; // 错误次数权重更高
+            japaneseALine.forEach(vowel => {
+                const weight = 1 + vowel.errorCount * 2;
                 weights.push(weight);
                 totalWeight += weight;
             });
             
-            // 生成随机数
             const random = Math.random() * totalWeight;
             let accumulated = 0;
             
-            for (let i = 0; i < japaneseVowels.length; i++) {
+            for (let i = 0; i < japaneseALine.length; i++) {
                 accumulated += weights[i];
                 if (random <= accumulated) {
-                    return japaneseVowels[i];
+                    return { ...japaneseALine[i] }; // 返回新对象，避免引用问题
                 }
             }
             
-            return japaneseVowels[0]; // 默认返回第一个
+            return { ...japaneseALine[0] };
         }
         
         // 显示下一个字符
@@ -657,71 +655,71 @@
             stats.currentCharacter = getWeightedRandomCharacter();
             characterDisplay.textContent = stats.currentCharacter.character;
             
-            // 记录开始时间
             stats.startTime = Date.now();
             
-            // 重置结果区域
             resultDisplay.textContent = '选择下面的读音';
             resultDisplay.className = 'result';
             resultDisplay.classList.remove('show');
             
-            // 启用所有选项按钮
             document.querySelectorAll('.option-btn').forEach(btn => {
                 btn.disabled = false;
                 btn.className = 'option-btn';
             });
             
-            // 禁用"下一个"按钮，等待回答
             nextBtn.disabled = true;
             stats.waitingForNext = false;
         }
         
-        // 处理用户回答
+        // 处理用户回答 - 彻底重构错误记录逻辑
         function handleAnswer(selectedRomanji) {
             if (stats.waitingForNext || !stats.testActive) return;
-            if (!stats.currentCharacter || stats.startTime === 0) return; // 防止在第一个字符未设置时点击
+            if (!stats.currentCharacter || stats.startTime === 0) return;
             
-            // 计算反应时间
-            const reactionTime = (Date.now() - stats.startTime) / 1000; // 转换为秒
+            const reactionTime = (Date.now() - stats.startTime) / 1000;
             stats.reactionTimes.push(reactionTime);
             
-            // 按文字类型存储反应时间
             if (stats.currentCharacter.kanaType === '平假名') {
                 stats.hiraganaTimes.push(reactionTime);
             } else {
                 stats.katakanaTimes.push(reactionTime);
             }
             
-            // 按元音存储反应时间
             stats.vowelTimes[stats.currentCharacter.romanji].push(reactionTime);
             
             stats.totalAttempts++;
             const isCorrect = (selectedRomanji === stats.currentCharacter.romanji);
+            
+            // 关键修复：使用唯一ID直接更新数组中的字符
+            const characterIndex = japaneseALine.findIndex(v => v.id === stats.currentCharacter.id);
+            
+            if (characterIndex === -1) {
+                console.error('未找到对应字符:', stats.currentCharacter.id);
+                return;
+            }
             
             if (isCorrect) {
                 stats.correctCount++;
                 resultDisplay.textContent = `✓ 正确！${stats.currentCharacter.character} (${stats.currentCharacter.kanaType}) = ${selectedRomanji} (反应时间: ${reactionTime.toFixed(2)}s)`;
                 resultDisplay.className = 'result correct';
                 
-                // 修复：正确回答时，错误次数只在有错误记录时减少1（确保为整数）
-                if (stats.currentCharacter.errorCount > 0) {
-                    stats.currentCharacter.errorCount--;
+                // 正确时减少错误计数，但不低于0
+                if (japaneseALine[characterIndex].errorCount > 0) {
+                    japaneseALine[characterIndex].errorCount = Math.max(0, japaneseALine[characterIndex].errorCount - 1);
                 }
             } else {
-                stats.currentCharacter.errorCount++; // 错误次数增加1
+                // 关键修复：错误时增加错误计数，直接操作数组
+                japaneseALine[characterIndex].errorCount++;
+                
                 resultDisplay.textContent = `✗ 错误！${stats.currentCharacter.character} (${stats.currentCharacter.kanaType}) 读作 ${stats.currentCharacter.romanji} (反应时间: ${reactionTime.toFixed(2)}s)`;
                 resultDisplay.className = 'result incorrect';
             }
             
-            // 显示结果
             setTimeout(() => {
                 resultDisplay.classList.add('show');
             }, 100);
             
-            // 更新统计显示
             updateStatsDisplay();
             
-            // 标记选中的按钮
             document.querySelectorAll('.option-btn').forEach(btn => {
                 btn.disabled = true;
                 if (btn.dataset.romanji === selectedRomanji) {
@@ -732,7 +730,6 @@
                 }
             });
             
-            // 启用"下一个"按钮
             nextBtn.disabled = false;
             stats.waitingForNext = true;
         }
@@ -743,20 +740,30 @@
             return times.reduce((sum, time) => sum + time, 0) / times.length;
         }
         
-        // 获取错误记录（确保错误次数为整数）
+        // 获取错误记录 - 彻底重构，确保所有错误都被记录
         function getErrorRecords() {
-            return japaneseVowels
-                .filter(vowel => vowel.errorCount > 0) // 只显示有错误的记录
-                .sort((a, b) => {
-                    // 先按错误次数降序，再按字符类型排序
-                    if (b.errorCount !== a.errorCount) {
-                        return b.errorCount - a.errorCount;
-                    }
-                    return a.character.localeCompare(b.character);
-                });
+            // 关键修复：重新计算所有字符的错误，确保准确性
+            const allErrors = [];
+            
+            // 按错误次数从高到低排序
+            const sortedCharacters = [...japaneseALine].sort((a, b) => b.errorCount - a.errorCount);
+            
+            sortedCharacters.forEach(char => {
+                if (char.errorCount > 0) {
+                    allErrors.push({
+                        id: char.id,
+                        character: char.character,
+                        kanaType: char.kanaType,
+                        romanji: char.romanji,
+                        errorCount: char.errorCount
+                    });
+                }
+            });
+            
+            return allErrors;
         }
         
-        // 更新统计显示
+        // 更新统计显示 - 强制刷新错误记录
         function updateStatsDisplay() {
             totalAttemptsEl.textContent = stats.totalAttempts;
             correctCountEl.textContent = stats.correctCount;
@@ -766,19 +773,22 @@
                 : 0;
             accuracyEl.textContent = `${accuracy}%`;
             
-            // 计算并显示平均反应时间
             const avgReactionTime = calculateAverage(stats.reactionTimes);
-            avgReactionTimeEl.textContent = `${avgReactionTime.toFixed(2)}s`;
+            avgReactionTimeEl.textContent = stats.reactionTimes.length > 0 ? `${avgReactionTime.toFixed(2)}s` : '0.0s';
             
-            // 获取错误记录
+            // 关键修复：每次更新时重新获取错误记录，确保准确性
             const errorRecords = getErrorRecords();
             
-            // 修复：确保错误次数显示为整数
+            // 调试信息
+            console.log('当前错误记录:', errorRecords.map(r => `${r.character}(${r.kanaType}): ${r.errorCount}`));
+            
             if (errorRecords.length > 0) {
-                errorLogEl.innerHTML = errorRecords.map(record => 
-                    `<span class="character-item" title="${record.kanaType} ${record.character}">`
-                    + `${record.character}<span style="font-size:0.7em;color:#c62828;margin-left:2px;">(${record.errorCount})</span></span>`
-                ).join('');
+                let errorHTML = '';
+                errorRecords.forEach(record => {
+                    errorHTML += `<span class="character-item" title="${record.kanaType} ${record.character} (罗马字: ${record.romanji})">`
+                        + `${record.character}<span style="font-size:0.7em;color:#c62828;margin-left:2px;">(${record.errorCount})</span></span>`;
+                });
+                errorLogEl.innerHTML = errorHTML;
             } else {
                 errorLogEl.textContent = '无';
             }
@@ -788,7 +798,6 @@
         function showTestResults() {
             stats.testActive = false;
             
-            // 计算各种平均反应时间
             const avgReactionTime = calculateAverage(stats.reactionTimes);
             const hiraganaAvg = calculateAverage(stats.hiraganaTimes);
             const katakanaAvg = calculateAverage(stats.katakanaTimes);
@@ -798,26 +807,25 @@
             const eAvg = calculateAverage(stats.vowelTimes.e);
             const oAvg = calculateAverage(stats.vowelTimes.o);
             
-            // 显示详细统计
-            hiraganaAvgEl.textContent = `${hiraganaAvg.toFixed(2)}s`;
-            katakanaAvgEl.textContent = `${katakanaAvg.toFixed(2)}s`;
-            aAvgEl.textContent = `${aAvg.toFixed(2)}s`;
-            iAvgEl.textContent = `${iAvg.toFixed(2)}s`;
-            uAvgEl.textContent = `${uAvg.toFixed(2)}s`;
-            eAvgEl.textContent = `${eAvg.toFixed(2)}s`;
-            oAvgEl.textContent = `${oAvg.toFixed(2)}s`;
+            hiraganaAvgEl.textContent = stats.hiraganaTimes.length > 0 ? `${hiraganaAvg.toFixed(2)}s` : '0.0s';
+            katakanaAvgEl.textContent = stats.katakanaTimes.length > 0 ? `${katakanaAvg.toFixed(2)}s` : '0.0s';
+            aAvgEl.textContent = stats.vowelTimes.a.length > 0 ? `${aAvg.toFixed(2)}s` : '0.0s';
+            iAvgEl.textContent = stats.vowelTimes.i.length > 0 ? `${iAvg.toFixed(2)}s` : '0.0s';
+            uAvgEl.textContent = stats.vowelTimes.u.length > 0 ? `${uAvg.toFixed(2)}s` : '0.0s';
+            eAvgEl.textContent = stats.vowelTimes.e.length > 0 ? `${eAvg.toFixed(2)}s` : '0.0s';
+            oAvgEl.textContent = stats.vowelTimes.o.length > 0 ? `${oAvg.toFixed(2)}s` : '0.0s';
             
-            // 显示结果面板
+            // 强制更新错误记录
+            updateStatsDisplay();
+            
             reactionStats.style.display = 'block';
             
-            // 禁用所有按钮
             nextBtn.disabled = true;
             endBtn.disabled = true;
             document.querySelectorAll('.option-btn').forEach(btn => {
                 btn.disabled = true;
             });
             
-            // 滚动到结果区域
             setTimeout(() => {
                 reactionStats.scrollIntoView({ behavior: 'smooth' });
             }, 300);
@@ -825,7 +833,6 @@
         
         // 重新开始测试
         function restartTest() {
-            // 重置统计数据
             stats = {
                 totalAttempts: 0,
                 correctCount: 0,
@@ -845,51 +852,17 @@
                 testActive: true
             };
             
-            // 重置所有字符的错误计数为整数
-            japaneseVowels.forEach(vowel => {
+            // 重置所有字符的错误计数
+            japaneseALine.forEach(vowel => {
                 vowel.errorCount = 0;
             });
             
-            // 重置显示
             reactionStats.style.display = 'none';
             nextBtn.disabled = false;
             endBtn.disabled = false;
             
-            // 更新统计显示
             updateStatsDisplay();
-            
-            // 显示下一个字符
             showNextCharacter();
-        }
-        
-        // 注册Service Worker（用于离线支持）
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('data:application/javascript,' + encodeURIComponent(`
-                    self.addEventListener('install', (event) => {
-                        self.skipWaiting();
-                    });
-                    
-                    self.addEventListener('activate', (event) => {
-                        event.waitUntil(clients.claim());
-                    });
-                    
-                    self.addEventListener('fetch', (event) => {
-                        // 简单的缓存策略，实际应用中可以更复杂
-                        event.respondWith(
-                            fetch(event.request).catch(() => {
-                                return new Response('<h1>Offline Mode</h1><p>You can still practice your Japanese vowels!</p>', {
-                                    headers: { 'Content-Type': 'text/html' }
-                                });
-                            })
-                        );
-                    });
-                `)).then(registration => {
-                    console.log('ServiceWorker registered:', registration.scope);
-                }).catch(error => {
-                    console.log('ServiceWorker registration failed:', error);
-                });
-            });
         }
         
         // 事件监听
@@ -901,8 +874,6 @@
         window.addEventListener('load', () => {
             initOptions();
             updateStatsDisplay();
-            
-            // 关键修改：页面加载后立即显示第一个随机字符
             showNextCharacter();
         });
     </script>
