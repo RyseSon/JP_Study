@@ -3,28 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta name="theme-color" content="#667eea">
+    <meta name="theme-color" content="#e53935">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="日语か行练习">
-    <meta name="description" content="日语か行平假名和片假名练习应用">
+    <meta name="description" content="日语か行的平假名和片假名练习应用">
     
     <!-- PWA Manifest -->
     <link rel="manifest" href="data:application/manifest+json,{
         %22name%22:%22日语か行练习%22,
         %22short_name%22:%22か行练习%22,
-        %22description%22:%22日语か行平假名和片假名练习应用%22,
+        %22description%22:%22日语か行的平假名和片假名练习应用%22,
         %22start_url%22:%22.%22,
         %22display%22:%22standalone%22,
         %22background_color%22:%22%23ffffff%22,
-        %22theme_color%22:%22%23667eea%22,
+        %22theme_color%22:%22%23e53935%22,
         %22icons%22:[{
-            %22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='88' fill='%23667eea'/%3E%3Ctext x='96' y='115' font-family='Arial' font-size='80' fill='white' text-anchor='middle'%3E%EF%BD%B6%3C/text%3E%3C/svg%3E%22,
+            %22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'%3E%3Ccircle cx='96' cy='96' r='88' fill='%23e53935'/%3E%3Ctext x='96' y='115' font-family='Arial' font-size='80' fill='white' text-anchor='middle'%3E%EF%BD%B6%3C/text%3E%3C/svg%3E%22,
             %22sizes%22:%22192x192%22,
             %22type%22:%22image/svg+xml%22,
             %22purpose%22:%22any maskable%22
         },{
-            %22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Ccircle cx='256' cy='256' r='240' fill='%23667eea'/%3E%3Ctext x='256' y='310' font-family='Arial' font-size='200' fill='white' text-anchor='middle'%3E%EF%BD%B6%3C/text%3E%3C/svg%3E%22,
+            %22src%22:%22data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Ccircle cx='256' cy='256' r='240' fill='%23e53935'/%3E%3Ctext x='256' y='310' font-family='Arial' font-size='200' fill='white' text-anchor='middle'%3E%EF%BD%B6%3C/text%3E%3C/svg%3E%22,
             %22sizes%22:%22512x512%22,
             %22type%22:%22image/svg+xml%22,
             %22purpose%22:%22any maskable%22
@@ -43,7 +43,7 @@
         
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #e53935 0%, #d81b60 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
@@ -161,30 +161,40 @@
             50% { transform: scale(1.05); }
         }
         
-        .next-btn {
+        .control-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin: 20px 0 15px;
+            flex-wrap: wrap;
+        }
+        
+        .next-btn, .end-btn {
             background: linear-gradient(135deg, #007bff 0%, #4facfe 100%);
             color: white;
             border: none;
             border-radius: 50px;
-            padding: 16px 45px;
-            font-size: 1.3em;
+            padding: 14px 30px;
+            font-size: 1.2em;
             font-weight: bold;
             cursor: pointer;
-            margin: 20px 0 15px;
             transition: all 0.3s ease;
             box-shadow: 0 6px 20px rgba(0, 123, 255, 0.4);
-            width: 90%;
-            max-width: 300px;
             touch-action: manipulation;
             -webkit-tap-highlight-color: transparent;
         }
         
-        .next-btn:active {
+        .end-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .next-btn:active, .end-btn:active {
             transform: translateY(2px);
             box-shadow: 0 3px 10px rgba(0, 123, 255, 0.5);
         }
         
-        .next-btn:disabled {
+        .next-btn:disabled, .end-btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
             transform: none;
@@ -307,6 +317,85 @@
             color: #c62828;
             font-size: 0.9em;
             box-shadow: 0 2px 4px rgba(198, 40, 40, 0.1);
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .character-item::before {
+            content: "×";
+            font-size: 0.8em;
+        }
+        
+        .reaction-time {
+            background: linear-gradient(135deg, #fff3e0 0%, #ffecb3 100%);
+            color: #e65100;
+            font-weight: bold;
+        }
+        
+        .stats-item.reaction-time .stats-label {
+            color: #e65100;
+            font-weight: bold;
+        }
+        
+        .stats-item.reaction-time .stats-label::before {
+            content: "⏱️";
+        }
+        
+        .reaction-stats {
+            margin-top: 20px;
+            padding: 15px;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-radius: 16px;
+            display: none;
+        }
+        
+        .reaction-stats h4 {
+            color: #1565c0;
+            margin-bottom: 12px;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        
+        .reaction-detail {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(21, 101, 192, 0.2);
+        }
+        
+        .reaction-detail:last-child {
+            border-bottom: none;
+        }
+        
+        .reaction-type {
+            font-weight: bold;
+            color: #1565c0;
+        }
+        
+        .reaction-value {
+            font-weight: bold;
+            color: #d32f2f;
+        }
+        
+        .restart-btn {
+            background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(67, 160, 71, 0.4);
+            width: 100%;
+        }
+        
+        .restart-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 8px rgba(67, 160, 71, 0.5);
         }
         
         /* 底部安全区域适配 */
@@ -354,11 +443,32 @@
             .stats-value {
                 color: #f7fafc;
             }
+            
+            .character-item {
+                background: linear-gradient(135deg, #2c0707 0%, #4a1c1c 100%);
+                color: #ffcdd2;
+            }
+            
+            .reaction-stats {
+                background: linear-gradient(135deg, #1a237e 0%, #311b92 100%);
+            }
+            
+            .reaction-detail {
+                border-bottom-color: rgba(255, 255, 255, 0.2);
+            }
+            
+            .reaction-type {
+                color: #7986cb;
+            }
+            
+            .reaction-value {
+                color: #f48fb1;
+            }
         }
         
         /* 触摸反馈效果 */
         @media (hover: none) and (pointer: coarse) {
-            .option-btn, .next-btn {
+            .option-btn, .next-btn, .end-btn, .restart-btn {
                 padding: 20px 5px;
             }
         }
@@ -379,7 +489,10 @@
             <!-- 选项按钮会通过JS动态生成 -->
         </div>
         
-        <button class="next-btn" id="nextBtn">下一个</button>
+        <div class="control-buttons">
+            <button class="next-btn" id="nextBtn">下一个</button>
+            <button class="end-btn" id="endBtn">结束测试</button>
+        </div>
         
         <div class="stats">
             <h3>练习统计</h3>
@@ -399,11 +512,48 @@
                 <span class="stats-label">错误记录</span>
                 <span class="stats-value" id="errorLog">无</span>
             </div>
+            <div class="stats-item reaction-time">
+                <span class="stats-label">平均反应时间</span>
+                <span class="stats-value" id="avgReactionTime">0.0s</span>
+            </div>
+        </div>
+        
+        <div class="reaction-stats" id="reactionStats">
+            <h4>详细反应时间统计</h4>
+            <div class="reaction-detail">
+                <span class="reaction-type">平假名平均:</span>
+                <span class="reaction-value" id="hiraganaAvg">0.0s</span>
+            </div>
+            <div class="reaction-detail">
+                <span class="reaction-type">片假名平均:</span>
+                <span class="reaction-value" id="katakanaAvg">0.0s</span>
+            </div>
+            <div class="reaction-detail">
+                <span class="reaction-type">元音 'ka' 平均:</span>
+                <span class="reaction-value" id="kaAvg">0.0s</span>
+            </div>
+            <div class="reaction-detail">
+                <span class="reaction-type">元音 'ki' 平均:</span>
+                <span class="reaction-value" id="kiAvg">0.0s</span>
+            </div>
+            <div class="reaction-detail">
+                <span class="reaction-type">元音 'ku' 平均:</span>
+                <span class="reaction-value" id="kuAvg">0.0s</span>
+            </div>
+            <div class="reaction-detail">
+                <span class="reaction-type">元音 'ke' 平均:</span>
+                <span class="reaction-value" id="keAvg">0.0s</span>
+            </div>
+            <div class="reaction-detail">
+                <span class="reaction-type">元音 'ko' 平均:</span>
+                <span class="reaction-value" id="koAvg">0.0s</span>
+            </div>
+            <button class="restart-btn" id="restartBtn">重新开始</button>
         </div>
     </div>
 
     <script>
-        // か行日语数据
+        // か行日语假名数据
         const japaneseKaLine = [
             { character: 'か', kanaType: '平假名', romanji: 'ka', errorCount: 0 },
             { character: 'き', kanaType: '平假名', romanji: 'ki', errorCount: 0 },
@@ -423,7 +573,18 @@
             correctCount: 0,
             currentCharacter: null,
             waitingForNext: false, // 初始状态不是等待下一个，而是等待回答
-            deferredPrompt: null
+            startTime: 0, // 记录字符显示的时间
+            reactionTimes: [], // 存储所有反应时间
+            hiraganaTimes: [], // 平假名反应时间
+            katakanaTimes: [], // 片假名反应时间
+            vowelTimes: { // 按元音分类的反应时间
+                ka: [],
+                ki: [],
+                ku: [],
+                ke: [],
+                ko: []
+            },
+            testActive: true // 测试是否进行中
         };
         
         // DOM元素
@@ -431,10 +592,21 @@
         const resultDisplay = document.getElementById('result');
         const optionsContainer = document.getElementById('optionsContainer');
         const nextBtn = document.getElementById('nextBtn');
+        const endBtn = document.getElementById('endBtn');
+        const restartBtn = document.getElementById('restartBtn');
         const totalAttemptsEl = document.getElementById('totalAttempts');
         const correctCountEl = document.getElementById('correctCount');
         const accuracyEl = document.getElementById('accuracy');
         const errorLogEl = document.getElementById('errorLog');
+        const avgReactionTimeEl = document.getElementById('avgReactionTime');
+        const hiraganaAvgEl = document.getElementById('hiraganaAvg');
+        const katakanaAvgEl = document.getElementById('katakanaAvg');
+        const kaAvgEl = document.getElementById('kaAvg');
+        const kiAvgEl = document.getElementById('kiAvg');
+        const kuAvgEl = document.getElementById('kuAvg');
+        const keAvgEl = document.getElementById('keAvg');
+        const koAvgEl = document.getElementById('koAvg');
+        const reactionStats = document.getElementById('reactionStats');
         
         // 初始化选项按钮
         function initOptions() {
@@ -459,7 +631,7 @@
             const weights = [];
             
             japaneseKaLine.forEach(vowel => {
-                const weight = 1 + vowel.errorCount * 2.5; // 错误次数权重更高
+                const weight = 1 + vowel.errorCount * 2; // 错误次数权重更高
                 weights.push(weight);
                 totalWeight += weight;
             });
@@ -480,8 +652,13 @@
         
         // 显示下一个字符
         function showNextCharacter() {
+            if (!stats.testActive) return;
+            
             stats.currentCharacter = getWeightedRandomCharacter();
             characterDisplay.textContent = stats.currentCharacter.character;
+            
+            // 记录开始时间
+            stats.startTime = Date.now();
             
             // 重置结果区域
             resultDisplay.textContent = '选择下面的读音';
@@ -501,22 +678,38 @@
         
         // 处理用户回答
         function handleAnswer(selectedRomanji) {
-            if (stats.waitingForNext) return;
-            if (!stats.currentCharacter) return; // 防止在第一个字符未设置时点击
+            if (stats.waitingForNext || !stats.testActive) return;
+            if (!stats.currentCharacter || stats.startTime === 0) return; // 防止在第一个字符未设置时点击
+            
+            // 计算反应时间
+            const reactionTime = (Date.now() - stats.startTime) / 1000; // 转换为秒
+            stats.reactionTimes.push(reactionTime);
+            
+            // 按文字类型存储反应时间
+            if (stats.currentCharacter.kanaType === '平假名') {
+                stats.hiraganaTimes.push(reactionTime);
+            } else {
+                stats.katakanaTimes.push(reactionTime);
+            }
+            
+            // 按元音存储反应时间
+            stats.vowelTimes[stats.currentCharacter.romanji].push(reactionTime);
             
             stats.totalAttempts++;
             const isCorrect = (selectedRomanji === stats.currentCharacter.romanji);
             
             if (isCorrect) {
                 stats.correctCount++;
-                resultDisplay.textContent = `✓ 正确！${stats.currentCharacter.character} (${stats.currentCharacter.kanaType}) = ${selectedRomanji}`;
+                resultDisplay.textContent = `✓ 正确！${stats.currentCharacter.character} (${stats.currentCharacter.kanaType}) = ${selectedRomanji} (反应时间: ${reactionTime.toFixed(2)}s)`;
                 resultDisplay.className = 'result correct';
                 
-                // 正确回答时，稍微减少错误计数（但不低于0）
-                stats.currentCharacter.errorCount = Math.max(0, stats.currentCharacter.errorCount - 0.5);
+                // 正确回答时，错误次数只在有错误记录时减少1（确保为整数）
+                if (stats.currentCharacter.errorCount > 0) {
+                    stats.currentCharacter.errorCount--;
+                }
             } else {
-                stats.currentCharacter.errorCount++;
-                resultDisplay.textContent = `✗ 错误！${stats.currentCharacter.character} (${stats.currentCharacter.kanaType}) 读作 ${stats.currentCharacter.romanji}`;
+                stats.currentCharacter.errorCount++; // 错误次数增加1
+                resultDisplay.textContent = `✗ 错误！${stats.currentCharacter.character} (${stats.currentCharacter.kanaType}) 读作 ${stats.currentCharacter.romanji} (反应时间: ${reactionTime.toFixed(2)}s)`;
                 resultDisplay.className = 'result incorrect';
             }
             
@@ -544,6 +737,25 @@
             stats.waitingForNext = true;
         }
         
+        // 计算平均值
+        function calculateAverage(times) {
+            if (times.length === 0) return 0;
+            return times.reduce((sum, time) => sum + time, 0) / times.length;
+        }
+        
+        // 获取错误记录（确保错误次数为整数）
+        function getErrorRecords() {
+            return japaneseKaLine
+                .filter(vowel => vowel.errorCount > 0) // 只显示有错误的记录
+                .sort((a, b) => {
+                    // 先按错误次数降序，再按字符类型排序
+                    if (b.errorCount !== a.errorCount) {
+                        return b.errorCount - a.errorCount;
+                    }
+                    return a.character.localeCompare(b.character);
+                });
+        }
+        
         // 更新统计显示
         function updateStatsDisplay() {
             totalAttemptsEl.textContent = stats.totalAttempts;
@@ -554,19 +766,100 @@
                 : 0;
             accuracyEl.textContent = `${accuracy}%`;
             
-            // 显示错误记录
-            const errorChars = japaneseKaLine
-                .filter(vowel => vowel.errorCount >= 0.5)
-                .sort((a, b) => b.errorCount - a.errorCount)
-                .map(vowel => `${vowel.character}(${Math.round(vowel.errorCount)})`);
+            // 计算并显示平均反应时间
+            const avgReactionTime = calculateAverage(stats.reactionTimes);
+            avgReactionTimeEl.textContent = `${avgReactionTime.toFixed(2)}s`;
             
-            if (errorChars.length > 0) {
-                errorLogEl.innerHTML = errorChars.map(char => 
-                    `<span class="character-item">${char}</span>`
+            // 获取错误记录
+            const errorRecords = getErrorRecords();
+            
+            // 确保错误次数显示为整数
+            if (errorRecords.length > 0) {
+                errorLogEl.innerHTML = errorRecords.map(record => 
+                    `<span class="character-item" title="${record.kanaType} ${record.character}">`
+                    + `${record.character}<span style="font-size:0.7em;color:#c62828;margin-left:2px;">(${record.errorCount})</span></span>`
                 ).join('');
             } else {
                 errorLogEl.textContent = '无';
             }
+        }
+        
+        // 显示结束测试结果
+        function showTestResults() {
+            stats.testActive = false;
+            
+            // 计算各种平均反应时间
+            const avgReactionTime = calculateAverage(stats.reactionTimes);
+            const hiraganaAvg = calculateAverage(stats.hiraganaTimes);
+            const katakanaAvg = calculateAverage(stats.katakanaTimes);
+            const kaAvg = calculateAverage(stats.vowelTimes.ka);
+            const kiAvg = calculateAverage(stats.vowelTimes.ki);
+            const kuAvg = calculateAverage(stats.vowelTimes.ku);
+            const keAvg = calculateAverage(stats.vowelTimes.ke);
+            const koAvg = calculateAverage(stats.vowelTimes.ko);
+            
+            // 显示详细统计
+            hiraganaAvgEl.textContent = `${hiraganaAvg.toFixed(2)}s`;
+            katakanaAvgEl.textContent = `${katakanaAvg.toFixed(2)}s`;
+            kaAvgEl.textContent = `${kaAvg.toFixed(2)}s`;
+            kiAvgEl.textContent = `${kiAvg.toFixed(2)}s`;
+            kuAvgEl.textContent = `${kuAvg.toFixed(2)}s`;
+            keAvgEl.textContent = `${keAvg.toFixed(2)}s`;
+            koAvgEl.textContent = `${koAvg.toFixed(2)}s`;
+            
+            // 显示结果面板
+            reactionStats.style.display = 'block';
+            
+            // 禁用所有按钮
+            nextBtn.disabled = true;
+            endBtn.disabled = true;
+            document.querySelectorAll('.option-btn').forEach(btn => {
+                btn.disabled = true;
+            });
+            
+            // 滚动到结果区域
+            setTimeout(() => {
+                reactionStats.scrollIntoView({ behavior: 'smooth' });
+            }, 300);
+        }
+        
+        // 重新开始测试
+        function restartTest() {
+            // 重置统计数据
+            stats = {
+                totalAttempts: 0,
+                correctCount: 0,
+                currentCharacter: null,
+                waitingForNext: false,
+                startTime: 0,
+                reactionTimes: [],
+                hiraganaTimes: [],
+                katakanaTimes: [],
+                vowelTimes: {
+                    ka: [],
+                    ki: [],
+                    ku: [],
+                    ke: [],
+                    ko: []
+                },
+                testActive: true
+            };
+            
+            // 重置所有字符的错误计数为整数
+            japaneseKaLine.forEach(vowel => {
+                vowel.errorCount = 0;
+            });
+            
+            // 重置显示
+            reactionStats.style.display = 'none';
+            nextBtn.disabled = false;
+            endBtn.disabled = false;
+            
+            // 更新统计显示
+            updateStatsDisplay();
+            
+            // 显示下一个字符
+            showNextCharacter();
         }
         
         // 注册Service Worker（用于离线支持）
@@ -585,7 +878,7 @@
                         // 简单的缓存策略，实际应用中可以更复杂
                         event.respondWith(
                             fetch(event.request).catch(() => {
-                                return new Response('<h1>Offline Mode</h1><p>You can still practice your Japanese ka-line characters!</p>', {
+                                return new Response('<h1>Offline Mode</h1><p>You can still practice your Japanese ka-line!</p>', {
                                     headers: { 'Content-Type': 'text/html' }
                                 });
                             })
@@ -601,6 +894,8 @@
         
         // 事件监听
         nextBtn.addEventListener('click', showNextCharacter);
+        endBtn.addEventListener('click', showTestResults);
+        restartBtn.addEventListener('click', restartTest);
         
         // 页面加载时初始化
         window.addEventListener('load', () => {
