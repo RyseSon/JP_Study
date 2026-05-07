@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日语「さ行」强化测验</title>
+    <style>
+        :root {
+            --primary: #6C5CE7; /* さ行采用紫色系 */
+            --primary-hover: #5849C4;
+            --bg-color: #F0F2F5;
+            --card-bg: #FFFFFF;
+            --text-main: #2D3436;
+            --text-muted: #636E72;
+            --correct: #00B894;
+            --wrong: #D63031;
+            --tip-bg: #F3F0FF;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 95%;
+            max-width: 480px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            padding: 35px;
+            text-align: center;
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        h1 { font-size: 26px; margin-bottom: 15px; color: var(--primary); }
+        p { margin-bottom: 25px; color: var(--text-muted); line-height: 1.6; font-size: 15px; }
+
+        .progress { font-size: 14px; color: var(--text-muted); margin-bottom: 12px; font-weight: 500; }
+
+        .question-box {
+            font-size: 90px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: var(--text-main);
+            min-height: 130px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #F8F9FA;
+            border-radius: 15px;
+            border: 2px solid #F1F2F6;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            font-size: 19px;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 25px;
+            width: 100%;
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(108, 92, 231, 0.3); }
+
+        .btn-option {
+            background-color: #F1F2F6;
+            padding: 22px 10px;
+            border: 2px solid transparent;
+            color: var(--text-main);
+        }
+
+        .btn-option:hover:not(:disabled) { background-color: #DFE6E9; }
+        .btn-option:disabled { cursor: not-allowed; opacity: 0.8; }
+        .btn-option.correct { background-color: var(--correct); color: white; }
+        .btn-option.wrong { background-color: var(--wrong); color: white; animation: shake 0.4s; }
+
+        /* 统计报告样式 */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #F8F9FA;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #EAECEF;
+        }
+
+        .stat-label { font-size: 12px; color: var(--text-muted); margin-bottom: 5px; display: block; }
+        .stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
+
+        .error-box {
+            text-align: left;
+            margin-bottom: 25px;
+            background: #FFF5F5;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #FFE3E3;
+        }
+
+        .error-title { font-size: 14px; font-weight: 700; color: var(--wrong); margin-bottom: 10px; display: flex; align-items: center; }
+
+        .tag-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+
+        .tag-item {
+            background: white;
+            color: var(--wrong);
+            border: 1.5px solid var(--wrong);
+            padding: 5px 12px;
+            border-radius: 25px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .science-info {
+            background-color: var(--tip-bg);
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 6px;
+            font-size: 13.5px;
+            color: #4834D4;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 开始 -->
+    <div id="start-screen" class="screen active">
+        <h1>日语「さ行」测试</h1>
+        <p>精准识别「さ、し、す、せ、そ」及其片假名。<br>我们将通过反应时间评估您的掌握熟练度。</p>
+        <button class="btn-primary" onclick="startQuiz()">进入测试</button>
+    </div>
+
+    <!-- 过程 -->
+    <div id="quiz-screen" class="screen">
+        <div class="progress" id="progress-text">进度: 0 / 20</div>
+        <div class="question-box" id="question-text">さ</div>
+        <div class="options-grid" id="options-container"></div>
+    </div>
+
+    <!-- 结果 -->
+    <div id="result-screen" class="screen">
+        <h1>学习报告</h1>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-label">平均反应</span>
+                <span id="avg-time" class="stat-val">0.00s</span>
+            </div>
+            <div class="stat-card">
+                <span class="stat-label">错误总计</span>
+                <span id="total-errors" class="stat-val" style="color:var(--wrong)">0次</span>
+            </div>
+        </div>
+
+        <div id="error-area" class="error-box" style="display:none;">
+            <div class="error-title">📍 需要针对性复习的弱项：</div>
+            <div id="tag-container" class="tag-wrap"></div>
+        </div>
+
+        <div class="science-info" id="science-text"></div>
+
+        <button class="btn-primary" onclick="resetQuiz()">重新开始</button>
+    </div>
+</div>
+
+<script>
+    const saGyou = [
+        { romaji: 'sa', hiragana: 'さ', katakana: 'サ' },
+        { romaji: 'shi', hiragana: 'し', katakana: 'シ' },
+        { romaji: 'su', hiragana: 'す', katakana: 'ス' },
+        { romaji: 'se', hiragana: 'せ', katakana: 'セ' },
+        { romaji: 'so', hiragana: 'そ', katakana: 'ソ' }
+    ];
+
+    const scienceTips = [
+        "💡 **脑科学提示**：当你对「さ」和「せ」感到混淆时，大脑正在经历“干扰记忆”。此时闭上眼并在脑中用手指虚空书写三遍，能有效通过**本体感觉**建立新的神经通路。",
+        "💡 **认知研究提示**：测试后的**即时回顾**效果远好于死记硬背。点击下方的重新开始，并在心中尝试快速读出每个选项，能通过“检索练习”加强突触连接。",
+        "💡 **学习效率贴士**：若平均反应时间超过2秒，说明大脑还没形成自动化的“直觉反射”。建议配合轻微的节奏点头，让记忆与身体节律耦合，能缩短决策链路。"
+    ];
+
+    let quizList = [], current = 0, errors = {};
+    let qStart = 0, totalTime = 0, firstHit = false;
+
+    function buildQuiz() {
+        let pool = [];
+        saGyou.forEach(item => {
+            pool.push({ q: item.hiragana, a: item.romaji, type: 'romaji', label: item.hiragana });
+            pool.push({ q: item.katakana, a: item.romaji, type: 'romaji', label: item.katakana });
+            pool.push({ q: item.romaji, a: item.hiragana, type: 'hiragana', label: item.romaji });
+            pool.push({ q: item.romaji, a: item.katakana, type: 'katakana', label: item.romaji });
+        });
+        return pool.sort(() => Math.random() - 0.5);
+    }
+
+    function startQuiz() {
+        quizList = buildQuiz();
+        current = 0;
+        errors = {};
+        totalTime = 0;
+        switchUI('start-screen', 'quiz-screen');
+        switchUI('result-screen', 'quiz-screen');
+        renderQ();
+    }
+
+    function renderQ() {
+        if (current >= quizList.length) return endQuiz();
+        
+        const q = quizList[current];
+        document.getElementById('progress-text').innerText = `进度: ${current + 1} / ${quizList.length}`;
+        document.getElementById('question-text').innerText = q.q;
+        
+        const box = document.getElementById('options-container');
+        box.innerHTML = '';
+        firstHit = false;
+
+        let opts = [];
+        if (q.type === 'romaji') opts = saGyou.map(d => d.romaji);
+        else if (q.type === 'hiragana') opts = saGyou.map(d => d.hiragana);
+        else opts = saGyou.map(d => d.katakana);
+
+        opts.sort(() => Math.random() - 0.5).forEach(o => {
+            const b = document.createElement('button');
+            b.className = 'btn-option';
+            b.innerText = o;
+            b.onclick = () => verify(o, q.a, b, q.label);
+            box.appendChild(b);
+        });
+        qStart = performance.now();
+    }
+
+    function verify(val, ans, el, label) {
+        if (!firstHit) {
+            totalTime += (performance.now() - qStart);
+            firstHit = true;
+        }
+
+        if (val === ans) {
+            el.classList.add('correct');
+            document.querySelectorAll('.btn-option').forEach(btn => btn.disabled = true);
+            setTimeout(() => { current++; renderQ(); }, 450);
+        } else {
+            if (!el.classList.contains('wrong')) {
+                el.classList.add('wrong');
+                errors[label] = (errors[label] || 0) + 1;
+            }
+        }
+    }
+
+    function endQuiz() {
+        switchUI('quiz-screen', 'result-screen');
+        
+        const errKeys = Object.keys(errors);
+        const totalErr = errKeys.length > 0 ? Object.values(errors).reduce((a, b) => a + b) : 0;
+        
+        document.getElementById('total-errors').innerText = `${totalErr}次`;
+        document.getElementById('avg-time').innerText = `${(totalTime / quizList.length / 1000).toFixed(2)}s`;
+
+        const errorBox = document.getElementById('error-area');
+        const tagBox = document.getElementById('tag-container');
+        
+        if (totalErr > 0) {
+            errorBox.style.display = 'block';
+            tagBox.innerHTML = errKeys.map(k => `<span class="tag-item">${k} (${errors[k]})</span>`).join('');
+        } else {
+            errorBox.style.display = 'none';
+        }
+
+        const tip = scienceTips[Math.floor(Math.random() * scienceTips.length)];
+        document.getElementById('science-text').innerHTML = tip.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    }
+
+    function switchUI(h, s) {
+        document.getElementById(h).classList.remove('active');
+        document.getElementById(s).classList.add('active');
+    }
+
+    function resetQuiz() { startQuiz(); }
+</script>
+</body>
+</html>
