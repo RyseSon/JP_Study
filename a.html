@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日语「あ行」学习测验</title>
+    <title>日语「あ行」强化测验</title>
     <style>
         :root {
             --primary: #4A90E2;
@@ -14,16 +14,13 @@
             --text-muted: #666666;
             --correct: #2ECC71;
             --wrong: #E74C3C;
+            --tip-bg: #F0F7FF;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-main);
             display: flex;
@@ -34,50 +31,33 @@
 
         .container {
             background-color: var(--card-bg);
-            width: 90%;
-            max-width: 450px;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            width: 95%;
+            max-width: 480px;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
             padding: 30px;
             text-align: center;
         }
 
-        /* 隐藏不同阶段的页面 */
-        .screen {
-            display: none;
-        }
-        .screen.active {
-            display: block;
-        }
+        .screen { display: none; }
+        .screen.active { display: block; }
 
-        h1 {
-            font-size: 24px;
-            margin-bottom: 20px;
-            color: var(--primary);
-        }
+        h1 { font-size: 24px; margin-bottom: 15px; color: var(--primary); }
+        p { margin-bottom: 20px; color: var(--text-muted); line-height: 1.6; font-size: 15px; }
 
-        p {
-            margin-bottom: 20px;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-
-        /* 测验区域样式 */
-        .progress {
-            font-size: 14px;
-            color: var(--text-muted);
-            margin-bottom: 15px;
-        }
+        .progress { font-size: 14px; color: var(--text-muted); margin-bottom: 10px; }
 
         .question-box {
-            font-size: 80px;
+            font-size: 85px;
             font-weight: bold;
-            margin: 30px 0;
+            margin: 25px 0;
             color: var(--text-main);
             min-height: 120px;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: #F8FAFC;
+            border-radius: 12px;
         }
 
         .options-grid {
@@ -90,67 +70,87 @@
             font-family: inherit;
             cursor: pointer;
             border: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 18px;
             font-weight: 600;
-            transition: all 0.2s ease;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         .btn-primary {
             background-color: var(--primary);
             color: white;
-            padding: 12px 24px;
+            padding: 14px 24px;
             width: 100%;
         }
 
-        .btn-primary:hover {
-            background-color: var(--primary-hover);
-        }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(74, 144, 226, 0.3); }
 
         .btn-option {
             background-color: #EDF2F7;
-            color: var(--text-main);
-            padding: 20px 10px;
+            padding: 22px 10px;
             border: 2px solid transparent;
         }
 
-        .btn-option:hover:not(:disabled) {
-            background-color: #E2E8F0;
+        .btn-option:hover:not(:disabled) { background-color: #E2E8F0; }
+        .btn-option:disabled { cursor: not-allowed; opacity: 0.8; }
+        .btn-option.correct { background-color: var(--correct); color: white; }
+        .btn-option.wrong { background-color: var(--wrong); color: white; animation: shake 0.4s; }
+
+        /* 统计数据样式 */
+        .stats-card {
+            background: #F8FAFC;
+            border-radius: 12px;
+            padding: 5px 0;
+            margin-bottom: 20px;
+            border: 1px solid #E2E8F0;
         }
 
-        .btn-option:disabled {
-            cursor: not-allowed;
-            opacity: 0.7;
-        }
-
-        .btn-option.correct {
-            background-color: var(--correct);
-            color: white;
-            border-color: var(--correct);
-        }
-
-        .btn-option.wrong {
-            background-color: var(--wrong);
-            color: white;
-            border-color: var(--wrong);
-            animation: shake 0.4s;
-        }
-
-        /* 结果区域样式 */
-        .result-item {
+        .stat-row {
             display: flex;
             justify-content: space-between;
-            padding: 15px;
-            border-bottom: 1px solid #EEEEEE;
-            font-size: 16px;
+            padding: 12px 20px;
+            border-bottom: 1px solid #EEF2F7;
         }
-        .result-item:last-child {
-            border-bottom: none;
+        .stat-row:last-child { border-bottom: none; }
+        .stat-value { font-weight: 700; color: var(--primary); }
+
+        .error-section {
+            text-align: left;
             margin-bottom: 20px;
         }
-        .result-value {
+
+        .error-title { font-size: 14px; font-weight: 600; margin-bottom: 8px; color: var(--wrong); }
+
+        .error-tag-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            background: #FFF5F5;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid #FED7D7;
+        }
+
+        .error-tag {
+            background: white;
+            color: var(--wrong);
+            border: 1px solid var(--wrong);
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 13px;
             font-weight: bold;
-            color: var(--primary);
+        }
+
+        .science-box {
+            background-color: var(--tip-bg);
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px 8px 8px 4px;
+            font-size: 13px;
+            color: #445566;
+            text-align: left;
+            line-height: 1.6;
         }
 
         @keyframes shake {
@@ -163,44 +163,48 @@
 <body>
 
 <div class="container">
-    <!-- 开始屏幕 -->
+    <!-- 初始界面 -->
     <div id="start-screen" class="screen active">
         <h1>日语「あ行」测试</h1>
-        <p>本次测试包含「あ行」的平假名、片假名与罗马音的双向识别。系统将自动记录您的错误类型及平均反应时间。</p>
-        <button class="btn-primary" onclick="startQuiz()">开始测试</button>
+        <p>挑战平假名、片假名与罗马音的快速切换。<br>我们将精准分析您的薄弱项并计算大脑反应速度。</p>
+        <button class="btn-primary" onclick="startQuiz()">开始挑战</button>
     </div>
 
-    <!-- 测验屏幕 -->
+    <!-- 测验界面 -->
     <div id="quiz-screen" class="screen">
         <div class="progress" id="progress-text">进度: 0 / 20</div>
         <div class="question-box" id="question-text">あ</div>
-        <div class="options-grid" id="options-container">
-            <!-- 选项按钮由JS动态生成 -->
-        </div>
+        <div class="options-grid" id="options-container"></div>
     </div>
 
-    <!-- 结果屏幕 -->
+    <!-- 结算界面 -->
     <div id="result-screen" class="screen">
-        <h1>测试完成！</h1>
-        <div class="result-item">
-            <span>罗马音错误次数：</span>
-            <span class="result-value" id="romaji-errors">0 次</span>
+        <h1>测验报告</h1>
+        
+        <div class="stats-card">
+            <div class="stat-row">
+                <span>平均反应时长</span>
+                <span id="avg-time" class="stat-value">0.00 秒</span>
+            </div>
+            <div class="stat-row">
+                <span>总计错误次数</span>
+                <span id="total-errors" class="stat-value" style="color:var(--wrong)">0 次</span>
+            </div>
         </div>
-        <div class="result-item">
-            <span>假名错误次数：</span>
-            <span class="result-value" id="kana-errors">0 次</span>
+
+        <div id="error-detail-area" class="error-section" style="display:none;">
+            <div class="error-title">⚠️ 需要重点强化的项：</div>
+            <div id="error-list-tags" class="error-tag-container"></div>
         </div>
-        <div class="result-item">
-            <span>平均反应时间：</span>
-            <span class="result-value" id="avg-time">0.00 秒</span>
-        </div>
-        <button class="btn-primary" style="margin-top: 15px;" onclick="resetQuiz()">重新测试</button>
+
+        <div class="science-box" id="science-tip-box"></div>
+
+        <button class="btn-primary" onclick="resetQuiz()">再次测试</button>
     </div>
 </div>
 
 <script>
-    // あ行 数据字典
-    const aGyou = [
+    const kanaData = [
         { romaji: 'a', hiragana: 'あ', katakana: 'ア' },
         { romaji: 'i', hiragana: 'い', katakana: 'イ' },
         { romaji: 'u', hiragana: 'う', katakana: 'ウ' },
@@ -208,166 +212,117 @@
         { romaji: 'o', hiragana: 'お', katakana: 'オ' }
     ];
 
-    // 状态变量
-    let questions = [];
-    let currentQuestionIndex = 0;
-    let errors = { romaji: 0, kana: 0 };
-    let questionStartTime = 0;
-    let totalReactionTime = 0;
-    let answeredQuestionsCount = 0;
-    let firstClickMade = false;
+    const brainTips = [
+        "🧠 **神经科学建议**：刚才答错时的那一瞬间，大脑的ACC（前扣带回）正在高速运转。这是神经突触重塑的最佳时机，深呼吸三次，让刚才的纠错记忆在大脑中“固化”。",
+        "🧠 **高效学习建议**：尝试在答题时小声读出声音。这种“多模态编码”（视觉+触觉点击+听觉）能显著提升记忆的持久度。",
+        "🧠 **运动机能建议**：现在起身做一个5秒钟的拉伸。身体的活动会促进多巴胺分泌，它能作为一种“化学胶水”，帮您把刚才识别的信息从工作记忆转存为长期记忆。"
+    ];
 
-    // DOM 元素
-    const startScreen = document.getElementById('start-screen');
-    const quizScreen = document.getElementById('quiz-screen');
-    const resultScreen = document.getElementById('result-screen');
-    const questionText = document.getElementById('question-text');
-    const optionsContainer = document.getElementById('options-container');
-    const progressText = document.getElementById('progress-text');
+    let quizList = [], currentIdx = 0, errorMap = {};
+    let startTime = 0, totalReactionTime = 0, isFirstClick = false;
 
-    // 初始化题目生成
-    function generateQuestions() {
+    function initQuestions() {
         let pool = [];
-        aGyou.forEach(item => {
-            // 看平假名选罗马音 (考察罗马音)
-            pool.push({ q: item.hiragana, a: item.romaji, optionType: 'romaji', errorType: 'romaji' });
-            // 看片假名选罗马音 (考察罗马音)
-            pool.push({ q: item.katakana, a: item.romaji, optionType: 'romaji', errorType: 'romaji' });
-            // 看罗马音选平假名 (考察假名)
-            pool.push({ q: item.romaji, a: item.hiragana, optionType: 'hiragana', errorType: 'kana' });
-            // 看罗马音选片假名 (考察假名)
-            pool.push({ q: item.romaji, a: item.katakana, optionType: 'katakana', errorType: 'kana' });
+        kanaData.forEach(item => {
+            // 四种测试模式：看平选罗、看片选罗、看罗选平、看罗选片
+            pool.push({ q: item.hiragana, a: item.romaji, type: 'romaji', label: item.hiragana });
+            pool.push({ q: item.katakana, a: item.romaji, type: 'romaji', label: item.katakana });
+            pool.push({ q: item.romaji, a: item.hiragana, type: 'hiragana', label: item.romaji });
+            pool.push({ q: item.romaji, a: item.katakana, type: 'katakana', label: item.romaji });
         });
-        // 打乱数组 (Fisher-Yates 洗牌算法)
-        for (let i = pool.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [pool[i], pool[j]] = [pool[j], pool[i]];
-        }
-        return pool;
+        return pool.sort(() => Math.random() - 0.5);
     }
 
-    // 生成选项
-    function generateOptions(correctAnswer, optionType) {
-        let allOptions = [];
-        if (optionType === 'romaji') allOptions = aGyou.map(i => i.romaji);
-        else if (optionType === 'hiragana') allOptions = aGyou.map(i => i.hiragana);
-        else if (optionType === 'katakana') allOptions = aGyou.map(i => i.katakana);
-
-        // 过滤掉正确答案，剩下4个错误选项
-        let wrongOptions = allOptions.filter(opt => opt !== correctAnswer);
-        
-        // 随机取3个错误选项
-        wrongOptions = wrongOptions.sort(() => 0.5 - Math.random()).slice(0, 3);
-        
-        // 组合并打乱
-        let finalOptions = [...wrongOptions, correctAnswer];
-        return finalOptions.sort(() => 0.5 - Math.random());
-    }
-
-    // 开始测试
     function startQuiz() {
-        questions = generateQuestions();
-        currentQuestionIndex = 0;
-        errors = { romaji: 0, kana: 0 };
+        quizList = initQuestions();
+        currentIdx = 0;
+        errorMap = {};
         totalReactionTime = 0;
-        answeredQuestionsCount = 0;
         
-        switchScreen(startScreen, quizScreen);
-        loadQuestion();
+        toggleScreen('start-screen', 'quiz-screen');
+        toggleScreen('result-screen', 'quiz-screen');
+        nextQuestion();
     }
 
-    // 加载当前题目
-    function loadQuestion() {
-        if (currentQuestionIndex >= questions.length) {
-            endQuiz();
-            return;
-        }
+    function nextQuestion() {
+        if (currentIdx >= quizList.length) return finishQuiz();
+        
+        const q = quizList[currentIdx];
+        document.getElementById('progress-text').innerText = `进度: ${currentIdx + 1} / ${quizList.length}`;
+        document.getElementById('question-text').innerText = q.q;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        isFirstClick = false;
 
-        const currentQ = questions[currentQuestionIndex];
-        progressText.innerText = `进度: ${currentQuestionIndex + 1} / ${questions.length}`;
-        questionText.innerText = currentQ.q;
-        optionsContainer.innerHTML = '';
-        firstClickMade = false;
+        let options = [];
+        if (q.type === 'romaji') options = kanaData.map(d => d.romaji);
+        else if (q.type === 'hiragana') options = kanaData.map(d => d.hiragana);
+        else options = kanaData.map(d => d.katakana);
 
-        const options = generateOptions(currentQ.a, currentQ.optionType);
-
-        options.forEach(opt => {
+        options.sort(() => Math.random() - 0.5).forEach(opt => {
             const btn = document.createElement('button');
             btn.className = 'btn-option';
             btn.innerText = opt;
-            btn.onclick = () => handleAnswer(opt, currentQ.a, btn, currentQ.errorType);
-            optionsContainer.appendChild(btn);
+            btn.onclick = () => verifyAnswer(opt, q.a, btn, q.label);
+            container.appendChild(btn);
         });
-
-        // 记录题目出现的时间
-        questionStartTime = performance.now();
+        startTime = performance.now();
     }
 
-    // 处理答题逻辑
-    function handleAnswer(selectedVal, correctVal, btnElement, errorType) {
-        // 记录首次反应时间
-        if (!firstClickMade) {
-            const reactionTime = performance.now() - questionStartTime;
-            totalReactionTime += reactionTime;
-            answeredQuestionsCount++;
-            firstClickMade = true;
+    function verifyAnswer(selected, correct, btn, label) {
+        if (!isFirstClick) {
+            totalReactionTime += (performance.now() - startTime);
+            isFirstClick = true;
         }
 
-        const allButtons = document.querySelectorAll('.btn-option');
-
-        if (selectedVal === correctVal) {
-            // 答对
-            btnElement.classList.add('correct');
-            // 禁用所有按钮防止多次点击
-            allButtons.forEach(b => b.disabled = true);
-            
-            // 延迟0.5秒进入下一题
-            setTimeout(() => {
-                currentQuestionIndex++;
-                loadQuestion();
-            }, 500);
+        if (selected === correct) {
+            btn.classList.add('correct');
+            document.querySelectorAll('.btn-option').forEach(b => b.disabled = true);
+            setTimeout(() => { currentIdx++; nextQuestion(); }, 500);
         } else {
-            // 答错
-            if (!btnElement.classList.contains('wrong')) {
-                btnElement.classList.add('wrong');
-                btnElement.disabled = true; // 禁用已点错的按钮
-                
-                // 记录错误类型
-                if (errorType === 'romaji') {
-                    errors.romaji++;
-                } else {
-                    errors.kana++;
-                }
+            if (!btn.classList.contains('wrong')) {
+                btn.classList.add('wrong');
+                // 记录导致错误的题目源
+                errorMap[label] = (errorMap[label] || 0) + 1;
             }
         }
     }
 
-    // 结束测试显示结果
-    function endQuiz() {
-        switchScreen(quizScreen, resultScreen);
+    function finishQuiz() {
+        toggleScreen('quiz-screen', 'result-screen');
         
-        document.getElementById('romaji-errors').innerText = `${errors.romaji} 次`;
-        document.getElementById('kana-errors').innerText = `${errors.kana} 次`;
+        const errValues = Object.values(errorMap);
+        const totalErrCount = errValues.length > 0 ? errValues.reduce((a, b) => a + b) : 0;
+        
+        document.getElementById('total-errors').innerText = `${totalErrCount} 次`;
+        document.getElementById('avg-time').innerText = `${(totalReactionTime / quizList.length / 1000).toFixed(2)} 秒`;
 
-        // 计算平均反应时间 (秒)
-        let avgTime = 0;
-        if (answeredQuestionsCount > 0) {
-            avgTime = (totalReactionTime / answeredQuestionsCount) / 1000;
+        const errorArea = document.getElementById('error-detail-area');
+        const tagContainer = document.getElementById('error-list-tags');
+        
+        if (totalErrCount > 0) {
+            errorArea.style.display = 'block';
+            tagContainer.innerHTML = Object.keys(errorMap)
+                .map(key => `<span class="error-tag">${key} (${errorMap[key]})</span>`)
+                .join('');
+        } else {
+            errorArea.style.display = 'none';
         }
-        document.getElementById('avg-time').innerText = `${avgTime.toFixed(2)} 秒`;
+
+        // 随机展示科学贴士
+        const tip = brainTips[Math.floor(Math.random() * brainTips.length)];
+        document.getElementById('science-tip-box').innerHTML = tip.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
     }
 
-    // 重新测试
+    function toggleScreen(hideId, showId) {
+        document.getElementById(hideId).classList.remove('active');
+        document.getElementById(showId).classList.add('active');
+    }
+
     function resetQuiz() {
-        switchScreen(resultScreen, startScreen);
-    }
-
-    // 屏幕切换辅助函数
-    function switchScreen(hideElement, showElement) {
-        hideElement.classList.remove('active');
-        showElement.classList.add('active');
+        startQuiz();
     }
 </script>
-
 </body>
 </html>
