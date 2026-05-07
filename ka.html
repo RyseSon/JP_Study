@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日语「か行」学习测验</title>
+    <style>
+        :root {
+            --primary: #8E44AD; /* 换了一个主色调区分不同行 */
+            --primary-hover: #732D91;
+            --bg-color: #F5F7FA;
+            --card-bg: #FFFFFF;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --correct: #2ECC71;
+            --wrong: #E74C3C;
+            --tip-bg: #F0F3F4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 90%;
+            max-width: 450px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+        }
+
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        .progress {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .question-box {
+            font-size: 80px;
+            font-weight: bold;
+            margin: 30px 0;
+            color: var(--text-main);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-option {
+            background-color: #EDF2F7;
+            color: var(--text-main);
+            padding: 20px 10px;
+            border: 2px solid transparent;
+        }
+
+        .btn-option:hover:not(:disabled) {
+            background-color: #E2E8F0;
+        }
+
+        .btn-option:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn-option.correct {
+            background-color: var(--correct);
+            color: white;
+            border-color: var(--correct);
+        }
+
+        .btn-option.wrong {
+            background-color: var(--wrong);
+            color: white;
+            border-color: var(--wrong);
+            animation: shake 0.4s;
+        }
+
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #EEEEEE;
+            font-size: 16px;
+        }
+        .result-item:last-of-type {
+            border-bottom: none;
+            margin-bottom: 10px;
+        }
+        .result-value {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* 脑科学小贴士样式 */
+        .science-tip {
+            background-color: var(--tip-bg);
+            border-left: 4px solid var(--primary);
+            padding: 12px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #555;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 开始屏幕 -->
+    <div id="start-screen" class="screen active">
+        <h1>日语「か行」测试</h1>
+        <p>本次测试包含「か行」的平假名、片假名与罗马音的双向识别。系统将自动记录您的错误类型及平均反应时间。</p>
+        <button class="btn-primary" onclick="startQuiz()">开始测试</button>
+    </div>
+
+    <!-- 测验屏幕 -->
+    <div id="quiz-screen" class="screen">
+        <div class="progress" id="progress-text">进度: 0 / 20</div>
+        <div class="question-box" id="question-text">か</div>
+        <div class="options-grid" id="options-container">
+            <!-- 选项由JS动态生成 -->
+        </div>
+    </div>
+
+    <!-- 结果屏幕 -->
+    <div id="result-screen" class="screen">
+        <h1>测试完成！</h1>
+        
+        <div class="result-item">
+            <span>罗马音错误次数：</span>
+            <span class="result-value" id="romaji-errors">0 次</span>
+        </div>
+        <div class="result-item">
+            <span>假名错误次数：</span>
+            <span class="result-value" id="kana-errors">0 次</span>
+        </div>
+        <div class="result-item">
+            <span>平均反应时间：</span>
+            <span class="result-value" id="avg-time">0.00 秒</span>
+        </div>
+
+        <!-- 学习科学贴士区域 -->
+        <div class="science-tip" id="science-tip-box">
+            <!-- 贴士内容由JS动态生成 -->
+        </div>
+
+        <button class="btn-primary" onclick="resetQuiz()">重新测试</button>
+    </div>
+</div>
+
+<script>
+    // か行 数据字典
+    const kaGyou = [
+        { romaji: 'ka', hiragana: 'か', katakana: 'カ' },
+        { romaji: 'ki', hiragana: 'き', katakana: 'キ' },
+        { romaji: 'ku', hiragana: 'く', katakana: 'ク' },
+        { romaji: 'ke', hiragana: 'け', katakana: 'ケ' },
+        { romaji: 'ko', hiragana: 'こ', katakana: 'コ' }
+    ];
+
+    // 脑科学与运动提示库
+    const scienceTips = [
+        "💡 神经科学提示：适度运动后大脑会释放BDNF（脑源性神经营养因子）。现在起立做几组简单的深蹲或拉伸，能让刚才记忆的「か行」神经突触连接更加牢固哦！",
+        "💡 学习科学提示：根据间隔重复（Spaced Repetition）原理，为了对抗艾宾浩斯遗忘曲线，建议您在明天同一时间再次打开本页面进行一次复习测试。",
+        "💡 认知效率提示：您的高频次视觉刺激已经使海马体处于活跃状态，此时深呼吸3次，提供充足氧气，有助于将短期工作记忆更高效地转化为长期记忆。",
+        "💡 运动结合提示：可以尝试在下一次测试时，每答对一题就轻轻踮起脚尖。将认知任务与轻度身体协调动作结合，能激活小脑并强化记忆的神经回路。"
+    ];
+
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let errors = { romaji: 0, kana: 0 };
+    let questionStartTime = 0;
+    let totalReactionTime = 0;
+    let answeredQuestionsCount = 0;
+    let firstClickMade = false;
+
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const progressText = document.getElementById('progress-text');
+    const tipBox = document.getElementById('science-tip-box');
+
+    function generateQuestions() {
+        let pool = [];
+        kaGyou.forEach(item => {
+            pool.push({ q: item.hiragana, a: item.romaji, optionType: 'romaji', errorType: 'romaji' });
+            pool.push({ q: item.katakana, a: item.romaji, optionType: 'romaji', errorType: 'romaji' });
+            pool.push({ q: item.romaji, a: item.hiragana, optionType: 'hiragana', errorType: 'kana' });
+            pool.push({ q: item.romaji, a: item.katakana, optionType: 'katakana', errorType: 'kana' });
+        });
+        
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        return pool;
+    }
+
+    function generateOptions(correctAnswer, optionType) {
+        let allOptions = [];
+        if (optionType === 'romaji') allOptions = kaGyou.map(i => i.romaji);
+        else if (optionType === 'hiragana') allOptions = kaGyou.map(i => i.hiragana);
+        else if (optionType === 'katakana') allOptions = kaGyou.map(i => i.katakana);
+
+        let wrongOptions = allOptions.filter(opt => opt !== correctAnswer);
+        wrongOptions = wrongOptions.sort(() => 0.5 - Math.random()).slice(0, 3);
+        
+        let finalOptions = [...wrongOptions, correctAnswer];
+        return finalOptions.sort(() => 0.5 - Math.random());
+    }
+
+    function startQuiz() {
+        questions = generateQuestions();
+        currentQuestionIndex = 0;
+        errors = { romaji: 0, kana: 0 };
+        totalReactionTime = 0;
+        answeredQuestionsCount = 0;
+        
+        switchScreen(startScreen, quizScreen);
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        if (currentQuestionIndex >= questions.length) {
+            endQuiz();
+            return;
+        }
+
+        const currentQ = questions[currentQuestionIndex];
+        progressText.innerText = `进度: ${currentQuestionIndex + 1} / ${questions.length}`;
+        questionText.innerText = currentQ.q;
+        optionsContainer.innerHTML = '';
+        firstClickMade = false;
+
+        const options = generateOptions(currentQ.a, currentQ.optionType);
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.innerText = opt;
+            btn.onclick = () => handleAnswer(opt, currentQ.a, btn, currentQ.errorType);
+            optionsContainer.appendChild(btn);
+        });
+
+        questionStartTime = performance.now();
+    }
+
+    function handleAnswer(selectedVal, correctVal, btnElement, errorType) {
+        if (!firstClickMade) {
+            const reactionTime = performance.now() - questionStartTime;
+            totalReactionTime += reactionTime;
+            answeredQuestionsCount++;
+            firstClickMade = true;
+        }
+
+        const allButtons = document.querySelectorAll('.btn-option');
+
+        if (selectedVal === correctVal) {
+            btnElement.classList.add('correct');
+            allButtons.forEach(b => b.disabled = true);
+            
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 500);
+        } else {
+            if (!btnElement.classList.contains('wrong')) {
+                btnElement.classList.add('wrong');
+                btnElement.disabled = true; 
+                
+                if (errorType === 'romaji') {
+                    errors.romaji++;
+                } else {
+                    errors.kana++;
+                }
+            }
+        }
+    }
+
+    function endQuiz() {
+        switchScreen(quizScreen, resultScreen);
+        
+        document.getElementById('romaji-errors').innerText = `${errors.romaji} 次`;
+        document.getElementById('kana-errors').innerText = `${errors.kana} 次`;
+
+        let avgTime = 0;
+        if (answeredQuestionsCount > 0) {
+            avgTime = (totalReactionTime / answeredQuestionsCount) / 1000;
+        }
+        document.getElementById('avg-time').innerText = `${avgTime.toFixed(2)} 秒`;
+
+        // 随机显示一条脑科学与运动提示
+        const randomTip = scienceTips[Math.floor(Math.random() * scienceTips.length)];
+        tipBox.innerText = randomTip;
+    }
+
+    function resetQuiz() {
+        switchScreen(resultScreen, startScreen);
+    }
+
+    function switchScreen(hideElement, showElement) {
+        hideElement.classList.remove('active');
+        showElement.classList.add('active');
+    }
+</script>
+
+</body>
+</html>

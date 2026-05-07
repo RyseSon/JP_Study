@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日语「あ行」学习测验</title>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --primary-hover: #357ABD;
+            --bg-color: #F5F7FA;
+            --card-bg: #FFFFFF;
+            --text-main: #333333;
+            --text-muted: #666666;
+            --correct: #2ECC71;
+            --wrong: #E74C3C;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 90%;
+            max-width: 450px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+            text-align: center;
+        }
+
+        /* 隐藏不同阶段的页面 */
+        .screen {
+            display: none;
+        }
+        .screen.active {
+            display: block;
+        }
+
+        h1 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        p {
+            margin-bottom: 20px;
+            color: var(--text-muted);
+            line-height: 1.5;
+        }
+
+        /* 测验区域样式 */
+        .progress {
+            font-size: 14px;
+            color: var(--text-muted);
+            margin-bottom: 15px;
+        }
+
+        .question-box {
+            font-size: 80px;
+            font-weight: bold;
+            margin: 30px 0;
+            color: var(--text-main);
+            min-height: 120px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.2s ease;
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 12px 24px;
+            width: 100%;
+        }
+
+        .btn-primary:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .btn-option {
+            background-color: #EDF2F7;
+            color: var(--text-main);
+            padding: 20px 10px;
+            border: 2px solid transparent;
+        }
+
+        .btn-option:hover:not(:disabled) {
+            background-color: #E2E8F0;
+        }
+
+        .btn-option:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .btn-option.correct {
+            background-color: var(--correct);
+            color: white;
+            border-color: var(--correct);
+        }
+
+        .btn-option.wrong {
+            background-color: var(--wrong);
+            color: white;
+            border-color: var(--wrong);
+            animation: shake 0.4s;
+        }
+
+        /* 结果区域样式 */
+        .result-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 15px;
+            border-bottom: 1px solid #EEEEEE;
+            font-size: 16px;
+        }
+        .result-item:last-child {
+            border-bottom: none;
+            margin-bottom: 20px;
+        }
+        .result-value {
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 开始屏幕 -->
+    <div id="start-screen" class="screen active">
+        <h1>日语「あ行」测试</h1>
+        <p>本次测试包含「あ行」的平假名、片假名与罗马音的双向识别。系统将自动记录您的错误类型及平均反应时间。</p>
+        <button class="btn-primary" onclick="startQuiz()">开始测试</button>
+    </div>
+
+    <!-- 测验屏幕 -->
+    <div id="quiz-screen" class="screen">
+        <div class="progress" id="progress-text">进度: 0 / 20</div>
+        <div class="question-box" id="question-text">あ</div>
+        <div class="options-grid" id="options-container">
+            <!-- 选项按钮由JS动态生成 -->
+        </div>
+    </div>
+
+    <!-- 结果屏幕 -->
+    <div id="result-screen" class="screen">
+        <h1>测试完成！</h1>
+        <div class="result-item">
+            <span>罗马音错误次数：</span>
+            <span class="result-value" id="romaji-errors">0 次</span>
+        </div>
+        <div class="result-item">
+            <span>假名错误次数：</span>
+            <span class="result-value" id="kana-errors">0 次</span>
+        </div>
+        <div class="result-item">
+            <span>平均反应时间：</span>
+            <span class="result-value" id="avg-time">0.00 秒</span>
+        </div>
+        <button class="btn-primary" style="margin-top: 15px;" onclick="resetQuiz()">重新测试</button>
+    </div>
+</div>
+
+<script>
+    // あ行 数据字典
+    const aGyou = [
+        { romaji: 'a', hiragana: 'あ', katakana: 'ア' },
+        { romaji: 'i', hiragana: 'い', katakana: 'イ' },
+        { romaji: 'u', hiragana: 'う', katakana: 'ウ' },
+        { romaji: 'e', hiragana: 'え', katakana: 'エ' },
+        { romaji: 'o', hiragana: 'お', katakana: 'オ' }
+    ];
+
+    // 状态变量
+    let questions = [];
+    let currentQuestionIndex = 0;
+    let errors = { romaji: 0, kana: 0 };
+    let questionStartTime = 0;
+    let totalReactionTime = 0;
+    let answeredQuestionsCount = 0;
+    let firstClickMade = false;
+
+    // DOM 元素
+    const startScreen = document.getElementById('start-screen');
+    const quizScreen = document.getElementById('quiz-screen');
+    const resultScreen = document.getElementById('result-screen');
+    const questionText = document.getElementById('question-text');
+    const optionsContainer = document.getElementById('options-container');
+    const progressText = document.getElementById('progress-text');
+
+    // 初始化题目生成
+    function generateQuestions() {
+        let pool = [];
+        aGyou.forEach(item => {
+            // 看平假名选罗马音 (考察罗马音)
+            pool.push({ q: item.hiragana, a: item.romaji, optionType: 'romaji', errorType: 'romaji' });
+            // 看片假名选罗马音 (考察罗马音)
+            pool.push({ q: item.katakana, a: item.romaji, optionType: 'romaji', errorType: 'romaji' });
+            // 看罗马音选平假名 (考察假名)
+            pool.push({ q: item.romaji, a: item.hiragana, optionType: 'hiragana', errorType: 'kana' });
+            // 看罗马音选片假名 (考察假名)
+            pool.push({ q: item.romaji, a: item.katakana, optionType: 'katakana', errorType: 'kana' });
+        });
+        // 打乱数组 (Fisher-Yates 洗牌算法)
+        for (let i = pool.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [pool[i], pool[j]] = [pool[j], pool[i]];
+        }
+        return pool;
+    }
+
+    // 生成选项
+    function generateOptions(correctAnswer, optionType) {
+        let allOptions = [];
+        if (optionType === 'romaji') allOptions = aGyou.map(i => i.romaji);
+        else if (optionType === 'hiragana') allOptions = aGyou.map(i => i.hiragana);
+        else if (optionType === 'katakana') allOptions = aGyou.map(i => i.katakana);
+
+        // 过滤掉正确答案，剩下4个错误选项
+        let wrongOptions = allOptions.filter(opt => opt !== correctAnswer);
+        
+        // 随机取3个错误选项
+        wrongOptions = wrongOptions.sort(() => 0.5 - Math.random()).slice(0, 3);
+        
+        // 组合并打乱
+        let finalOptions = [...wrongOptions, correctAnswer];
+        return finalOptions.sort(() => 0.5 - Math.random());
+    }
+
+    // 开始测试
+    function startQuiz() {
+        questions = generateQuestions();
+        currentQuestionIndex = 0;
+        errors = { romaji: 0, kana: 0 };
+        totalReactionTime = 0;
+        answeredQuestionsCount = 0;
+        
+        switchScreen(startScreen, quizScreen);
+        loadQuestion();
+    }
+
+    // 加载当前题目
+    function loadQuestion() {
+        if (currentQuestionIndex >= questions.length) {
+            endQuiz();
+            return;
+        }
+
+        const currentQ = questions[currentQuestionIndex];
+        progressText.innerText = `进度: ${currentQuestionIndex + 1} / ${questions.length}`;
+        questionText.innerText = currentQ.q;
+        optionsContainer.innerHTML = '';
+        firstClickMade = false;
+
+        const options = generateOptions(currentQ.a, currentQ.optionType);
+
+        options.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.innerText = opt;
+            btn.onclick = () => handleAnswer(opt, currentQ.a, btn, currentQ.errorType);
+            optionsContainer.appendChild(btn);
+        });
+
+        // 记录题目出现的时间
+        questionStartTime = performance.now();
+    }
+
+    // 处理答题逻辑
+    function handleAnswer(selectedVal, correctVal, btnElement, errorType) {
+        // 记录首次反应时间
+        if (!firstClickMade) {
+            const reactionTime = performance.now() - questionStartTime;
+            totalReactionTime += reactionTime;
+            answeredQuestionsCount++;
+            firstClickMade = true;
+        }
+
+        const allButtons = document.querySelectorAll('.btn-option');
+
+        if (selectedVal === correctVal) {
+            // 答对
+            btnElement.classList.add('correct');
+            // 禁用所有按钮防止多次点击
+            allButtons.forEach(b => b.disabled = true);
+            
+            // 延迟0.5秒进入下一题
+            setTimeout(() => {
+                currentQuestionIndex++;
+                loadQuestion();
+            }, 500);
+        } else {
+            // 答错
+            if (!btnElement.classList.contains('wrong')) {
+                btnElement.classList.add('wrong');
+                btnElement.disabled = true; // 禁用已点错的按钮
+                
+                // 记录错误类型
+                if (errorType === 'romaji') {
+                    errors.romaji++;
+                } else {
+                    errors.kana++;
+                }
+            }
+        }
+    }
+
+    // 结束测试显示结果
+    function endQuiz() {
+        switchScreen(quizScreen, resultScreen);
+        
+        document.getElementById('romaji-errors').innerText = `${errors.romaji} 次`;
+        document.getElementById('kana-errors').innerText = `${errors.kana} 次`;
+
+        // 计算平均反应时间 (秒)
+        let avgTime = 0;
+        if (answeredQuestionsCount > 0) {
+            avgTime = (totalReactionTime / answeredQuestionsCount) / 1000;
+        }
+        document.getElementById('avg-time').innerText = `${avgTime.toFixed(2)} 秒`;
+    }
+
+    // 重新测试
+    function resetQuiz() {
+        switchScreen(resultScreen, startScreen);
+    }
+
+    // 屏幕切换辅助函数
+    function switchScreen(hideElement, showElement) {
+        hideElement.classList.remove('active');
+        showElement.classList.add('active');
+    }
+</script>
+
+</body>
+</html>
