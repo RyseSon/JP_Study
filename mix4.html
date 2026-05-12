@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日语假名混合强化测验 (あ-た行)</title>
+    <style>
+        :root {
+            --primary: #2C3E50;
+            --accent: #3498DB;
+            --bg: #F4F7F6;
+            --card: #FFFFFF;
+            --text: #2C3E50;
+            --correct: #27AE60;
+            --wrong: #E74C3C;
+            --gold: #F1C40F;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            background: var(--card);
+            width: 100%;
+            max-width: 550px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            padding: 35px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* 装饰条 */
+        .container::before {
+            content: "";
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 6px;
+            background: linear-gradient(90deg, #3498DB, #9B59B6, #E67E22, #27AE60);
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        h1 { font-size: 24px; margin-bottom: 10px; text-align: center; color: var(--primary); }
+        .subtitle { text-align: center; color: #7F8C8D; margin-bottom: 25px; font-size: 14px; }
+
+        /* 进度条 */
+        .progress-container {
+            width: 100%; height: 8px; background: #ECF0F1;
+            border-radius: 4px; margin-bottom: 20px; overflow: hidden;
+        }
+        #progress-bar {
+            width: 0%; height: 100%; background: var(--accent);
+            transition: width 0.3s ease;
+        }
+
+        .question-card {
+            background: #FBFCFC;
+            border: 2px solid #ECF0F1;
+            border-radius: 15px;
+            padding: 40px 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        #question-text {
+            font-size: 100px;
+            font-weight: bold;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+        .options-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px;
+        }
+
+        button {
+            cursor: pointer; border: none; border-radius: 12px;
+            font-size: 18px; font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+        }
+
+        .btn-main {
+            background: var(--primary); color: white;
+            padding: 15px 30px; width: 100%; margin-top: 10px;
+        }
+        .btn-main:hover { background: #34495E; transform: translateY(-2px); }
+
+        .btn-opt {
+            background: #F8F9FA; padding: 20px 10px;
+            border: 2px solid transparent; color: var(--text);
+        }
+        .btn-opt:hover:not(:disabled) { border-color: var(--accent); background: #EBF5FB; }
+        .btn-opt.correct { background: var(--correct) !important; color: white; }
+        .btn-opt.wrong { background: var(--wrong) !important; color: white; animation: shake 0.4s; }
+
+        /* 结果页样式 */
+        .stat-grid {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 25px;
+        }
+        .stat-box {
+            background: #F8FAFC; padding: 15px; border-radius: 12px; border: 1px solid #E2E8F0;
+            text-align: center;
+        }
+        .stat-label { font-size: 12px; color: #64748B; display: block; margin-bottom: 5px; }
+        .stat-value { font-size: 20px; font-weight: 800; color: var(--accent); }
+
+        .rank-banner {
+            padding: 15px; border-radius: 12px; margin-bottom: 20px;
+            font-weight: bold; font-size: 18px; color: white; text-align: center;
+        }
+
+        .error-log {
+            text-align: left; background: #FFF5F5; padding: 15px;
+            border-radius: 12px; border: 1px solid #FED7D7; margin-bottom: 20px;
+        }
+        .error-title { font-size: 14px; font-weight: 700; color: #C53030; margin-bottom: 10px; }
+        .tag-container { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag {
+            background: white; color: #C53030; border: 1.5px solid #FC8181;
+            padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- START SCREEN -->
+    <div id="screen-start" class="screen active">
+        <h1>假名综合测验 (あ-た行)</h1>
+        <p class="subtitle">共包含 20 个假名，80 种转换组合。<br>系统将从混合池中抽取 40 题进行评估。</p>
+        <button class="btn-main" onclick="initQuiz()">开始压力测试</button>
+    </div>
+
+    <!-- QUIZ SCREEN -->
+    <div id="screen-quiz" class="screen">
+        <div class="progress-container"><div id="progress-bar"></div></div>
+        <div class="question-card">
+            <span id="question-text">あ</span>
+            <div style="font-size: 12px; color: #BDC3C7;">请选择正确的对应项</div>
+        </div>
+        <div class="options-grid" id="options-box"></div>
+    </div>
+
+    <!-- RESULT SCREEN -->
+    <div id="screen-result" class="screen">
+        <h1>测试分析报告</h1>
+        
+        <div id="rank-display" class="rank-banner">计算中...</div>
+
+        <div class="stat-grid">
+            <div class="stat-box">
+                <span class="stat-label">平均反应时长</span>
+                <span id="res-time" class="stat-value">0.00s</span>
+            </div>
+            <div class="stat-box">
+                <span class="stat-label">准确率</span>
+                <span id="res-accuracy" class="stat-value">100%</span>
+            </div>
+        </div>
+
+        <div id="error-section" class="error-log" style="display:none;">
+            <div class="error-title">📊 稳定性异常项目 (错误记录)：</div>
+            <div id="error-tags" class="tag-container"></div>
+        </div>
+
+        <div id="mastery-tip" style="font-size: 13px; color: #64748B; margin-bottom: 25px; line-height: 1.6; border-left: 4px solid #CBD5E1; padding-left: 15px;"></div>
+
+        <button class="btn-main" onclick="initQuiz()">重新开始测试</button>
+    </div>
+</div>
+
+<script>
+    const KANA_POOL = [
+        { r: 'a', h: 'あ', k: 'ア' }, { r: 'i', h: 'い', k: 'イ' }, { r: 'u', h: 'う', k: 'ウ' }, { r: 'e', h: 'え', k: 'エ' }, { r: 'o', h: 'お', k: 'オ' },
+        { r: 'ka', h: 'か', k: 'カ' }, { r: 'ki', h: 'き', k: 'キ' }, { r: 'ku', h: 'く', k: 'ク' }, { r: 'ke', h: 'け', k: 'ケ' }, { r: 'ko', h: 'こ', k: 'コ' },
+        { r: 'sa', h: 'さ', k: 'サ' }, { r: 'shi', h: 'し', k: 'シ' }, { r: 'su', h: 'す', k: 'ス' }, { r: 'se', h: 'せ', k: 'セ' }, { r: 'so', h: 'そ', k: 'ソ' },
+        { r: 'ta', h: 'た', k: 'タ' }, { r: 'chi', h: 'ち', k: 'チ' }, { r: 'tsu', h: 'つ', k: 'ツ' }, { r: 'te', h: 'て', k: 'テ' }, { r: 'to', h: 'と', k: 'ト' }
+    ];
+
+    const RANK_LEVELS = [
+        { max: 0.8, name: "条件反射级 (MASTER)", color: "#27AE60", tip: "识别已进入无意识阶段，神经通路极其稳固。" },
+        { max: 1.2, name: "流畅熟练级 (FLUENT)", color: "#2980B9", tip: "识别效率极高，能够支撑流畅的阅读体验。" },
+        { max: 2.0, name: "标准合格级 (COMPETENT)", color: "#F39C12", tip: "掌握良好，但高频转换时仍存在轻微认知负载。" },
+        { max: 3.5, name: "正在加载级 (LEARNING)", color: "#E67E22", tip: "依赖逻辑推导。建议通过增加练习频率来将'知识'转化为'本能'。" },
+        { max: Infinity, name: "重构/盲猜级 (STRUGGLING)", color: "#C0392B", tip: "数据链路未建立。建议停止测试，先进行静态记忆强化。" }
+    ];
+
+    let questions = [], currentIdx = 0, errorMap = {}, totalErrors = 0;
+    let startTime = 0, sumReactionTime = 0, isAnswered = false;
+    const QUIZ_COUNT = 40; // 抽取40题
+
+    function initQuiz() {
+        let allPossible = [];
+        KANA_POOL.forEach(item => {
+            allPossible.push({ q: item.h, a: item.r, type: 'r', label: item.h }); // 读平假名
+            allPossible.push({ q: item.k, a: item.r, type: 'r', label: item.k }); // 读片假名
+            allPossible.push({ q: item.r, a: item.h, type: 'h', label: item.r }); // 选平假名
+            allPossible.push({ q: item.r, a: item.k, type: 'k', label: item.r }); // 选片假名
+        });
+        
+        // 随机抽取 40 题
+        questions = allPossible.sort(() => Math.random() - 0.5).slice(0, QUIZ_COUNT);
+        
+        currentIdx = 0;
+        errorMap = {};
+        totalErrors = 0;
+        sumReactionTime = 0;
+
+        changeScreen('screen-quiz');
+        loadNext();
+    }
+
+    function loadNext() {
+        if (currentIdx >= questions.length) return showFinal();
+
+        const q = questions[currentIdx];
+        isAnswered = false;
+        
+        document.getElementById('progress-bar').style.width = `${(currentIdx / QUIZ_COUNT) * 100}%`;
+        document.getElementById('question-text').innerText = q.q;
+        
+        const box = document.getElementById('options-box');
+        box.innerHTML = '';
+
+        // 生成干扰项
+        let options = [];
+        if (q.type === 'r') options = KANA_POOL.map(d => d.r);
+        else if (q.type === 'h') options = KANA_POOL.map(d => d.h);
+        else options = KANA_POOL.map(d => d.k);
+
+        // 选出正确答案+3个随机干扰
+        let finalOptions = [q.a];
+        let others = options.filter(o => o !== q.a).sort(() => Math.random() - 0.5).slice(0, 3);
+        finalOptions = [...finalOptions, ...others].sort(() => Math.random() - 0.5);
+
+        finalOptions.forEach(o => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-opt';
+            btn.innerText = o;
+            btn.onclick = () => handleCheck(o, q.a, btn, q.label);
+            box.appendChild(btn);
+        });
+
+        startTime = performance.now();
+    }
+
+    function handleCheck(selected, correct, btn, label) {
+        if (!isAnswered) {
+            sumReactionTime += (performance.now() - startTime);
+            isAnswered = true;
+        }
+
+        if (selected === correct) {
+            btn.classList.add('correct');
+            document.querySelectorAll('.btn-opt').forEach(b => b.disabled = true);
+            setTimeout(() => { currentIdx++; loadNext(); }, 400);
+        } else {
+            if (!btn.classList.contains('wrong')) {
+                btn.classList.add('wrong');
+                errorMap[label] = (errorMap[label] || 0) + 1;
+                totalErrors++;
+            }
+        }
+    }
+
+    function showFinal() {
+        changeScreen('screen-result');
+        
+        const avgTime = (sumReactionTime / QUIZ_COUNT / 1000);
+        const accuracy = Math.max(0, ((QUIZ_COUNT - totalErrors) / QUIZ_COUNT) * 100).toFixed(0);
+        
+        document.getElementById('res-time').innerText = avgTime.toFixed(2) + 's';
+        document.getElementById('res-accuracy').innerText = accuracy + '%';
+
+        // 等级评估
+        const rank = RANK_LEVELS.find(r => avgTime <= r.max);
+        const banner = document.getElementById('rank-display');
+        banner.innerText = rank.name;
+        banner.style.background = rank.color;
+        document.getElementById('mastery-tip').innerText = rank.tip;
+
+        // 错误列表
+        const errSection = document.getElementById('error-section');
+        if (totalErrors > 0) {
+            errSection.style.display = 'block';
+            document.getElementById('error-tags').innerHTML = Object.keys(errorMap)
+                .map(k => `<span class="tag">${k} (${errorMap[k]})</span>`).join('');
+        } else {
+            errSection.style.display = 'none';
+        }
+    }
+
+    function changeScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+</script>
+
+</body>
+</html>
