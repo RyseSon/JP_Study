@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五十音前五行综合测验 (あ-な)</title>
+    <style>
+        :root {
+            --primary: #1A5276;
+            --secondary: #2980B9;
+            --bg: #F0F4F8;
+            --card: #FFFFFF;
+            --text: #2E4053;
+            --correct: #27AE60;
+            --wrong: #C0392B;
+            --rank-gold: #D4AC0D;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 15px;
+        }
+
+        .container {
+            background: var(--card);
+            width: 100%; max-width: 550px;
+            border-radius: 20px;
+            box-shadow: 0 12px 30px rgba(0,0,0,0.1);
+            padding: 30px; position: relative;
+            border-top: 8px solid var(--primary);
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        h1 { font-size: 24px; text-align: center; margin-bottom: 8px; color: var(--primary); }
+        .info-text { text-align: center; color: #7F8C8D; font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
+
+        /* 进度展示 */
+        .header-meta { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; font-size: 13px; font-weight: bold; color: var(--secondary); }
+        .progress-bar-wrap { width: 100%; height: 6px; background: #E5E8E8; border-radius: 3px; margin-bottom: 25px; overflow: hidden; }
+        #progress-fill { width: 0%; height: 100%; background: var(--secondary); transition: width 0.3s; }
+
+        /* 题目展示 */
+        .q-card {
+            background: #FBFCFC; border: 2px solid #D6EAF8;
+            border-radius: 15px; padding: 45px 10px; margin-bottom: 25px;
+            text-align: center;
+        }
+        #q-char { font-size: 90px; font-weight: bold; display: block; margin-bottom: 5px; color: #1B2631; }
+
+        /* 选项按钮 */
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        button {
+            cursor: pointer; border: none; border-radius: 10px;
+            font-size: 18px; font-weight: 600; font-family: inherit;
+            transition: all 0.2s;
+        }
+        .btn-main { background: var(--primary); color: white; padding: 16px; width: 100%; margin-top: 10px; }
+        .btn-main:hover { background: var(--secondary); transform: translateY(-2px); }
+
+        .btn-opt { background: #F2F4F4; padding: 18px 10px; border: 2px solid transparent; color: var(--text); }
+        .btn-opt:hover:not(:disabled) { border-color: var(--secondary); background: #EBF5FB; }
+        .btn-opt.correct { background: var(--correct) !important; color: white; }
+        .btn-opt.wrong { background: var(--wrong) !important; color: white; animation: shake 0.4s; }
+
+        /* 结果面板 */
+        .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin: 20px 0; }
+        .res-item { background: #F4F6F7; padding: 15px; border-radius: 12px; text-align: center; border: 1px solid #D5DBDB; }
+        .res-label { font-size: 12px; color: #7F8C8D; display: block; margin-bottom: 4px; }
+        .res-val { font-size: 20px; font-weight: 800; color: var(--primary); }
+
+        .rank-box {
+            padding: 18px; border-radius: 12px; margin-bottom: 20px;
+            text-align: center; font-weight: bold; font-size: 18px; color: white;
+        }
+
+        .error-zone { text-align: left; background: #FDEDEC; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
+        .error-tag { 
+            display: inline-block; background: white; color: var(--wrong); 
+            border: 1px solid var(--wrong); padding: 3px 10px; 
+            border-radius: 15px; font-size: 13px; margin: 3px; font-weight: bold;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- START -->
+    <div id="sc-start" class="screen active">
+        <h1>五十音综合测验</h1>
+        <p class="info-text">测试范围：あ行、か行、さ行、た行、な行<br>系统将从 100 个组合中随机抽取 50 题</p>
+        <button class="btn-main" onclick="startTest()">进入测试模式</button>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="sc-quiz" class="screen">
+        <div class="header-meta">
+            <span id="prog-text">0 / 50</span>
+            <span id="timer-live" style="font-family: monospace;">0.0s</span>
+        </div>
+        <div class="progress-bar-wrap"><div id="progress-fill"></div></div>
+        <div class="q-card">
+            <span id="q-char">-</span>
+        </div>
+        <div class="options-grid" id="opt-box"></div>
+    </div>
+
+    <!-- RESULT -->
+    <div id="sc-result" class="screen">
+        <h1>评估报告</h1>
+        <div id="rank-banner" class="rank-box">-</div>
+        
+        <div class="res-grid">
+            <div class="res-item">
+                <span class="res-label">平均反应</span>
+                <span id="res-time" class="res-val">0.00s</span>
+            </div>
+            <div class="res-item">
+                <span class="res-label">正确率</span>
+                <span id="res-acc" class="res-val">0%</span>
+            </div>
+        </div>
+
+        <div id="err-log" class="error-zone" style="display:none;">
+            <div style="font-size:13px; font-weight:700; color:var(--wrong); margin-bottom:8px;">需要巩固的假名：</div>
+            <div id="err-tags"></div>
+        </div>
+
+        <div id="adv-tip" style="background:#EBF5FB; padding:15px; border-radius:10px; font-size:13px; color:#21618C; line-height:1.6; margin-bottom:20px;"></div>
+
+        <button class="btn-main" onclick="startTest()">再次挑战</button>
+    </div>
+</div>
+
+<script>
+    const KANA_DATA = [
+        {r:'a', h:'あ', k:'ア'}, {r:'i', h:'い', k:'イ'}, {r:'u', h:'う', k:'ウ'}, {r:'e', h:'え', k:'エ'}, {r:'o', h:'お', k:'オ'},
+        {r:'ka', h:'か', k:'カ'}, {r:'ki', h:'き', k:'キ'}, {r:'ku', h:'く', k:'ク'}, {r:'ke', h:'け', k:'ケ'}, {r:'ko', h:'こ', k:'コ'},
+        {r:'sa', h:'さ', k:'サ'}, {r:'shi', h:'し', k:'シ'}, {r:'su', h:'す', k:'ス'}, {r:'se', h:'せ', k:'セ'}, {r:'so', h:'そ', k:'ソ'},
+        {r:'ta', h:'た', k:'タ'}, {r:'chi', h:'ち', k:'チ'}, {r:'tsu', h:'つ', k:'ツ'}, {r:'te', h:'て', k:'テ'}, {r:'to', h:'と', k:'ト'},
+        {r:'na', h:'な', k:'ナ'}, {r:'ni', h:'に', k:'ニ'}, {r:'nu', h:'ぬ', k:'ヌ'}, {r:'ne', h:'ね', k:'ネ'}, {r:'no', h:'の', k:'ノ'}
+    ];
+
+    const RANKINGS = [
+        {max: 0.8, name: "条件反射级 (Master)", color: "#27AE60", tip: "极其完美！你对前五行的识别已经达到了母语级的肌肉记忆状态。"},
+        {max: 1.2, name: "流畅熟练级 (Fluent)", color: "#2980B9", tip: "非常出色。你已经具备了流畅阅读日语基础文本的反应速度。"},
+        {max: 2.0, name: "标准合格级 (Competent)", color: "#D4AC0D", tip: "掌握良好。识别仍有微小延迟，建议针对错误项进行爆发式强化。"},
+        {max: 3.5, name: "正在学习级 (Learning)", color: "#E67E22", tip: "尚处于逻辑推导阶段。建议每天进行3-5组测试，重点区分形态相似的假名。"},
+        {max: Infinity, name: "重构/盲猜级 (Struggling)", color: "#C0392B", tip: "连接不够稳固。建议回到静态背诵阶段，先确保准确率再追求速度。"}
+    ];
+
+    let quizSet = [], currentPos = 0, mistakes = {}, errCount = 0;
+    let lapStart = 0, totalReaction = 0, isLocked = false;
+    const TOTAL_Q = 50;
+
+    function startTest() {
+        let pool = [];
+        KANA_DATA.forEach(d => {
+            pool.push({ q: d.h, a: d.r, type: 'romaji', lab: d.h });
+            pool.push({ q: d.k, a: d.r, type: 'romaji', lab: d.k });
+            pool.push({ q: d.r, a: d.h, type: 'hira', lab: d.r });
+            pool.push({ q: d.r, a: d.k, type: 'kata', lab: d.r });
+        });
+        quizSet = pool.sort(() => Math.random() - 0.5).slice(0, TOTAL_Q);
+        
+        currentPos = 0; mistakes = {}; errCount = 0; totalReaction = 0;
+        switchScreen('sc-quiz');
+        renderQ();
+    }
+
+    function renderQ() {
+        if (currentPos >= TOTAL_Q) return showResults();
+        
+        const q = quizSet[currentPos];
+        isLocked = false;
+        
+        document.getElementById('prog-text').innerText = `${currentPos + 1} / ${TOTAL_Q}`;
+        document.getElementById('progress-fill').style.width = `${(currentPos / TOTAL_Q) * 100}%`;
+        document.getElementById('q-char').innerText = q.q;
+        
+        const box = document.getElementById('opt-box');
+        box.innerHTML = '';
+
+        let choices = [];
+        if (q.type === 'romaji') choices = KANA_DATA.map(x => x.r);
+        else if (q.type === 'hira') choices = KANA_DATA.map(x => x.h);
+        else choices = KANA_DATA.map(x => x.k);
+
+        let finalOpts = [q.a, ...choices.filter(c => c !== q.a).sort(() => Math.random() - 0.5).slice(0, 3)];
+        finalOpts.sort(() => Math.random() - 0.5).forEach(o => {
+            const b = document.createElement('button');
+            b.className = 'btn-opt';
+            b.innerText = o;
+            b.onclick = () => check(o, q.a, b, q.lab);
+            box.appendChild(b);
+        });
+
+        lapStart = performance.now();
+    }
+
+    function check(sel, cor, btn, lab) {
+        if (!isLocked) {
+            totalReaction += (performance.now() - lapStart);
+            isLocked = true;
+        }
+
+        if (sel === cor) {
+            btn.classList.add('correct');
+            document.querySelectorAll('.btn-opt').forEach(el => el.disabled = true);
+            setTimeout(() => { currentPos++; renderQ(); }, 350);
+        } else {
+            if (!btn.classList.contains('wrong')) {
+                btn.classList.add('wrong');
+                mistakes[lab] = (mistakes[lab] || 0) + 1;
+                errCount++;
+            }
+        }
+    }
+
+    function showResults() {
+        switchScreen('sc-result');
+        const avg = (totalReaction / TOTAL_Q / 1000);
+        const acc = Math.round(((TOTAL_Q - errCount) / TOTAL_Q) * 100);
+        
+        document.getElementById('res-time').innerText = avg.toFixed(2) + 's';
+        document.getElementById('res-acc').innerText = acc + '%';
+
+        const r = RANKINGS.find(x => avg <= x.max);
+        const banner = document.getElementById('rank-banner');
+        banner.innerText = r.name;
+        banner.style.backgroundColor = r.color;
+        document.getElementById('adv-tip').innerText = "💡 学习建议：" + r.tip;
+
+        const errZone = document.getElementById('err-log');
+        const tagBox = document.getElementById('err-tags');
+        if (errCount > 0) {
+            errZone.style.display = 'block';
+            tagBox.innerHTML = Object.keys(mistakes).map(k => `<span class="error-tag">${k} (${mistakes[k]})</span>`).join('');
+        } else {
+            errZone.style.display = 'none';
+        }
+    }
+
+    function switchScreen(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+</script>
+</body>
+</html>

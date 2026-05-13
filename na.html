@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日语「な行」强化测验</title>
+    <style>
+        :root {
+            --primary: #27AE60; /* な行采用翠绿色 */
+            --primary-hover: #219150;
+            --bg-color: #F9FBFA;
+            --card-bg: #FFFFFF;
+            --text-main: #2C3E50;
+            --text-muted: #7F8C8D;
+            --correct: #2ECC71;
+            --wrong: #E74C3C;
+            --tip-bg: #EAFAF1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            background-color: var(--card-bg);
+            width: 95%;
+            max-width: 500px;
+            border-radius: 24px;
+            box-shadow: 0 20px 40px rgba(39, 174, 96, 0.1);
+            padding: 40px;
+            text-align: center;
+            border: 1px solid #D5F5E3;
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        h1 { font-size: 28px; margin-bottom: 15px; color: var(--primary); }
+        p { margin-bottom: 25px; color: var(--text-muted); line-height: 1.6; font-size: 15px; }
+
+        .progress { font-size: 14px; color: var(--text-muted); margin-bottom: 10px; font-weight: 600; }
+
+        .question-box {
+            font-size: 95px;
+            font-weight: bold;
+            margin: 20px 0;
+            color: var(--text-main);
+            min-height: 140px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #F4FBF7;
+            border-radius: 18px;
+            border: 2px solid #D5F5E3;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+
+        button {
+            font-family: inherit;
+            cursor: pointer;
+            border: none;
+            border-radius: 12px;
+            font-size: 20px;
+            font-weight: 600;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            padding: 16px 28px;
+            width: 100%;
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3); }
+
+        .btn-option {
+            background-color: #F1F2F6;
+            padding: 22px 10px;
+            border: 2px solid transparent;
+            color: var(--text-main);
+        }
+
+        .btn-option:hover:not(:disabled) { background-color: #E8F8F5; border-color: var(--primary); }
+        .btn-option:disabled { cursor: not-allowed; opacity: 0.8; }
+        .btn-option.correct { background-color: var(--correct); color: white; }
+        .btn-option.wrong { background-color: var(--wrong); color: white; animation: shake 0.4s; }
+
+        /* 统计与评价 */
+        .results-panel {
+            background: #F0F9F4;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            border: 1px solid #D5F5E3;
+        }
+
+        .stat-line { display: flex; justify-content: space-between; margin-bottom: 12px; font-size: 16px; }
+        .stat-line:last-child { margin-bottom: 0; }
+        .stat-val { font-weight: 800; color: var(--primary); }
+
+        .rank-tag {
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: var(--primary);
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .error-log {
+            text-align: left;
+            margin-bottom: 25px;
+            background: #FFF5F5;
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid #FADBD8;
+        }
+
+        .error-title { font-size: 14px; font-weight: 700; color: var(--wrong); margin-bottom: 10px; }
+        .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag { background: white; color: var(--wrong); border: 1.5px solid var(--wrong); padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: bold; }
+
+        .brain-tip {
+            background-color: var(--tip-bg);
+            border-left: 5px solid var(--primary);
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+            font-size: 13px;
+            color: #196F3D;
+            text-align: left;
+            line-height: 1.6;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 开始屏幕 -->
+    <div id="start-screen" class="screen active">
+        <h1>日语「な行」测验</h1>
+        <p>精准挑战「な、に、ぬ、ね、の」的双向识别。<br>特别注意区分形态相似的「ぬ」和「ね」。</p>
+        <button class="btn-primary" onclick="startQuiz()">开始测验</button>
+    </div>
+
+    <!-- 测验屏幕 -->
+    <div id="quiz-screen" class="screen">
+        <div class="progress" id="progress-text">进度: 0 / 20</div>
+        <div class="question-box" id="question-text">な</div>
+        <div class="options-grid" id="options-container"></div>
+    </div>
+
+    <!-- 结果屏幕 -->
+    <div id="result-screen" class="screen">
+        <h1>测验评估报告</h1>
+        
+        <div class="results-panel">
+            <div class="stat-line">
+                <span>平均反应时长</span>
+                <span id="avg-time" class="stat-val">0.00s</span>
+            </div>
+            <div class="stat-line">
+                <span>掌握等级评估</span>
+                <span id="rank-name" class="rank-tag">-</span>
+            </div>
+            <div class="stat-line">
+                <span>总计错误次数</span>
+                <span id="total-err" class="stat-val" style="color:var(--wrong)">0</span>
+            </div>
+        </div>
+
+        <div id="error-section" class="error-log" style="display:none;">
+            <div class="error-title">🔍 重点弱项记录：</div>
+            <div id="error-tags" class="tag-list"></div>
+        </div>
+
+        <div class="brain-tip" id="brain-tip-content"></div>
+
+        <button class="btn-primary" onclick="resetQuiz()">重新开始</button>
+    </div>
+</div>
+
+<script>
+    const naGyou = [
+        { romaji: 'na', hira: 'な', kata: 'ナ' },
+        { romaji: 'ni', hira: 'に', kata: 'ニ' },
+        { romaji: 'nu', hira: 'ぬ', kata: 'ヌ' },
+        { romaji: 'ne', hira: 'ね', kata: 'ネ' },
+        { romaji: 'no', hira: 'の', kata: 'ノ' }
+    ];
+
+    const rankLevels = [
+        { max: 0.8, name: "条件反射级 ⚡", tip: "完美！识别延迟已低于认知阈值，这些假名已固化为你的视觉本能。" },
+        { max: 1.2, name: "流畅熟练级 ✨", tip: "优秀！你的识别速度足以支撑高强度的日语阅读。" },
+        { max: 2.0, name: "标准合格级 ✅", tip: "掌握良好。尝试在脑中加强「ぬ」和「ね」的形态差异区分。" },
+        { max: 3.5, name: "正在加载级 📘", tip: "识别仍有明显的逻辑推导过程，建议增加测试频率。" },
+        { max: Infinity, name: "需要强化级 🔄", tip: "数据链路尚不稳固。先确保准确率，速度会在重复中自然提升。" }
+    ];
+
+    let quizData = [], currentIdx = 0, errorMap = {};
+    let startTime = 0, totalTime = 0, interactionFlag = false;
+
+    function buildQuiz() {
+        let pool = [];
+        naGyou.forEach(item => {
+            pool.push({ q: item.hira, a: item.romaji, type: 'romaji', label: item.hira });
+            pool.push({ q: item.kata, a: item.romaji, type: 'romaji', label: item.kata });
+            pool.push({ q: item.romaji, a: item.hira, type: 'hira', label: item.romaji });
+            pool.push({ q: item.romaji, a: item.kata, type: 'kata', label: item.romaji });
+        });
+        return pool.sort(() => Math.random() - 0.5);
+    }
+
+    function startQuiz() {
+        quizData = buildQuiz();
+        currentIdx = 0;
+        errorMap = {};
+        totalTime = 0;
+        toggleUI('start-screen', 'quiz-screen');
+        toggleUI('result-screen', 'quiz-screen');
+        renderQuestion();
+    }
+
+    function renderQuestion() {
+        if (currentIdx >= quizData.length) return renderResults();
+        
+        const q = quizData[currentIdx];
+        document.getElementById('progress-text').innerText = `STEP: ${currentIdx + 1} / ${quizData.length}`;
+        document.getElementById('question-text').innerText = q.q;
+        
+        const container = document.getElementById('options-container');
+        container.innerHTML = '';
+        interactionFlag = false;
+
+        let options = [];
+        if (q.type === 'romaji') options = naGyou.map(d => d.romaji);
+        else if (q.type === 'hira') options = naGyou.map(d => d.hira);
+        else options = naGyou.map(d => d.kata);
+
+        options.sort(() => Math.random() - 0.5).forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-option';
+            btn.innerText = opt;
+            btn.onclick = () => check(opt, q.a, btn, q.label);
+            container.appendChild(btn);
+        });
+        startTime = performance.now();
+    }
+
+    function check(val, correct, btn, label) {
+        if (!interactionFlag) {
+            totalTime += (performance.now() - startTime);
+            interactionFlag = true;
+        }
+
+        if (val === correct) {
+            btn.classList.add('correct');
+            document.querySelectorAll('.btn-option').forEach(b => b.disabled = true);
+            setTimeout(() => { currentIdx++; renderQuestion(); }, 400);
+        } else {
+            if (!btn.classList.contains('wrong')) {
+                btn.classList.add('wrong');
+                errorMap[label] = (errorMap[label] || 0) + 1;
+            }
+        }
+    }
+
+    function renderResults() {
+        toggleUI('quiz-screen', 'result-screen');
+        
+        const avg = (totalTime / quizData.length / 1000);
+        document.getElementById('avg-time').innerText = avg.toFixed(2) + 's';
+        
+        const rank = rankLevels.find(r => avg <= r.max);
+        document.getElementById('rank-name').innerText = rank.name;
+        document.getElementById('brain-tip-content').innerText = "💡 专家建议：" + rank.tip;
+
+        const errKeys = Object.keys(errorMap);
+        const totalErr = errKeys.length > 0 ? Object.values(errorMap).reduce((a, b) => a + b) : 0;
+        document.getElementById('total-err').innerText = totalErr;
+
+        const errSection = document.getElementById('error-section');
+        if (totalErr > 0) {
+            errSection.style.display = 'block';
+            document.getElementById('error-tags').innerHTML = errKeys.map(k => `<span class="tag">${k} (${errorMap[k]})</span>`).join('');
+        } else {
+            errSection.style.display = 'none';
+        }
+    }
+
+    function toggleUI(h, s) {
+        document.getElementById(h).classList.remove('active');
+        document.getElementById(s).classList.add('active');
+    }
+
+    function resetQuiz() { startQuiz(); }
+</script>
+</body>
+</html>
