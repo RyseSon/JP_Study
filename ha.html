@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日语「は行」强化测验</title>
+    <style>
+        :root {
+            --primary: #8E44AD; /* は行采用紫色 */
+            --primary-light: #F5EEF8;
+            --bg: #FBFCFC;
+            --card: #FFFFFF;
+            --text: #2C3E50;
+            --correct: #27AE60;
+            --wrong: #E74C3C;
+            --slow: #E67E22;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 20px;
+        }
+
+        .container {
+            background: var(--card);
+            width: 100%; max-width: 480px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(142, 68, 173, 0.15);
+            padding: 35px; border-top: 6px solid var(--primary);
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        h1 { font-size: 26px; text-align: center; margin-bottom: 10px; color: var(--primary); }
+        .desc { text-align: center; color: #7F8C8D; font-size: 14px; margin-bottom: 30px; }
+
+        .progress-text { font-size: 13px; font-weight: bold; color: var(--primary); margin-bottom: 8px; }
+        .bar-bg { width: 100%; height: 6px; background: #EBEDEF; border-radius: 3px; margin-bottom: 25px; overflow: hidden; }
+        #bar-fill { width: 0%; height: 100%; background: var(--primary); transition: width 0.3s; }
+
+        .q-box {
+            background: var(--primary-light); border-radius: 15px;
+            padding: 40px 10px; margin-bottom: 25px; text-align: center;
+        }
+        #q-text { font-size: 85px; font-weight: bold; color: var(--text); }
+
+        .options { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        button { cursor: pointer; border: none; border-radius: 12px; font-family: inherit; transition: all 0.2s; }
+        .btn-start { background: var(--primary); color: white; padding: 16px; width: 100%; font-size: 18px; }
+        .btn-opt { background: #F4F6F7; padding: 20px 10px; font-size: 20px; font-weight: 600; }
+        .btn-opt:hover:not(:disabled) { background: #EBEDEF; transform: translateY(-2px); }
+        .btn-opt.correct { background: var(--correct) !important; color: white; }
+        .btn-opt.wrong { background: var(--wrong) !important; color: white; animation: shake 0.4s; }
+
+        /* 统计样式 */
+        .stat-card { background: #F8F9F9; padding: 15px; border-radius: 12px; margin-bottom: 15px; border: 1px solid #E5E8E8; }
+        .stat-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
+        .stat-val { font-weight: 800; color: var(--primary); }
+
+        .analysis-section { margin-top: 20px; text-align: left; }
+        .analysis-title { font-size: 14px; font-weight: bold; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; }
+        .tag-wrap { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 15px; }
+        .tag { padding: 4px 10px; border-radius: 8px; font-size: 13px; font-weight: bold; background: white; }
+        .tag-err { color: var(--wrong); border: 1.5px solid var(--wrong); }
+        .tag-slow { color: var(--slow); border: 1.5px solid var(--slow); }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- START -->
+    <div id="s-start" class="screen active">
+        <h1>日语「は行」测验</h1>
+        <p class="desc">包含 は、ひ、ふ、へ、ほ<br>系统将记录错误项及反应时长超过 3s 的项目</p>
+        <button class="btn-start" onclick="start()">开始压力测试</button>
+    </div>
+
+    <!-- QUIZ -->
+    <div id="s-quiz" class="screen">
+        <div class="progress-text" id="p-label">0 / 20</div>
+        <div class="bar-bg"><div id="bar-fill"></div></div>
+        <div class="q-box"><span id="q-text">-</span></div>
+        <div class="options" id="opt-grid"></div>
+    </div>
+
+    <!-- RESULT -->
+    <div id="s-result" class="screen">
+        <h1>评估总结</h1>
+        <div class="stat-card">
+            <div class="stat-row"><span>平均反应时间</span><span id="r-time" class="stat-val">0s</span></div>
+            <div class="stat-row"><span>总准确率</span><span id="r-acc" class="stat-val">0%</span></div>
+        </div>
+
+        <div class="analysis-section">
+            <div id="box-err" style="display:none;">
+                <div class="analysis-title" style="color:var(--wrong)">❌ 识别错误项：</div>
+                <div class="tag-wrap" id="tags-err"></div>
+            </div>
+            
+            <div id="box-slow" style="display:none;">
+                <div class="analysis-title" style="color:var(--slow)">⏳ 反应迟缓项 (>3s)：</div>
+                <div class="tag-wrap" id="tags-slow"></div>
+            </div>
+        </div>
+
+        <button class="btn-start" onclick="start()" style="margin-top:10px;">重新测试</button>
+    </div>
+</div>
+
+<script>
+    const DATA = [
+        {r:'ha', h:'は', k:'ハ'}, {r:'hi', h:'ひ', k:'ヒ'}, 
+        {r:'fu', h:'ふ', k:'フ'}, {r:'he', h:'へ', k:'ヘ'}, {r:'ho', h:'ほ', k:'ホ'}
+    ];
+
+    let questions = [], cur = 0, logs = [];
+    let qStart = 0, isDone = false;
+
+    function start() {
+        let pool = [];
+        DATA.forEach(d => {
+            pool.push({q: d.h, a: d.r, type:'r', info:`${d.h}(${d.r})`});
+            pool.push({q: d.k, a: d.r, type:'r', info:`${d.k}(${d.r})`});
+            pool.push({q: d.r, a: d.h, type:'h', info:`${d.h}(${d.r})`});
+            pool.push({q: d.r, a: d.k, type:'k', info:`${d.k}(${d.r})`});
+        });
+        questions = pool.sort(() => Math.random() - 0.5);
+        cur = 0; logs = [];
+        show('s-quiz');
+        render();
+    }
+
+    function render() {
+        if (cur >= questions.length) return result();
+        const q = questions[cur];
+        isDone = false;
+        
+        document.getElementById('p-label').innerText = `${cur + 1} / ${questions.length}`;
+        document.getElementById('bar-fill').style.width = `${(cur / questions.length) * 100}%`;
+        document.getElementById('q-text').innerText = q.q;
+
+        const grid = document.getElementById('opt-grid');
+        grid.innerHTML = '';
+
+        let opts = [];
+        if(q.type==='r') opts = DATA.map(x=>x.r);
+        else if(q.type==='h') opts = DATA.map(x=>x.h);
+        else opts = DATA.map(x=>x.k);
+
+        opts.sort(() => Math.random() - 0.5).forEach(o => {
+            const b = document.createElement('button');
+            b.className = 'btn-opt';
+            b.innerText = o;
+            b.onclick = () => check(o, q.a, b, q.info);
+            grid.appendChild(b);
+        });
+        qStart = performance.now();
+    }
+
+    function check(val, ans, btn, info) {
+        if (!isDone) {
+            const duration = (performance.now() - qStart) / 1000;
+            logs.push({ info: info, time: duration, correct: val === ans });
+            isDone = true;
+        }
+
+        if (val === ans) {
+            btn.classList.add('correct');
+            document.querySelectorAll('.btn-opt').forEach(b => b.disabled = true);
+            setTimeout(() => { cur++; render(); }, 400);
+        } else {
+            btn.classList.add('wrong');
+        }
+    }
+
+    function result() {
+        show('s-result');
+        const avg = logs.reduce((s, x) => s + x.time, 0) / logs.length;
+        const acc = (logs.filter(x => x.correct).length / logs.length) * 100;
+        
+        document.getElementById('r-time').innerText = avg.toFixed(2) + 's';
+        document.getElementById('r-acc').innerText = acc.toFixed(0) + '%';
+
+        // 统计错误和迟缓
+        const errs = [...new Set(logs.filter(x => !x.correct).map(x => x.info))];
+        const slows = [...new Set(logs.filter(x => x.correct && x.time > 3).map(x => x.info))];
+
+        const eBox = document.getElementById('box-err'), eTags = document.getElementById('tags-err');
+        const sBox = document.getElementById('box-slow'), sTags = document.getElementById('tags-slow');
+
+        if(errs.length > 0) {
+            eBox.style.display = 'block';
+            eTags.innerHTML = errs.map(t => `<span class="tag tag-err">${t}</span>`).join('');
+        } else eBox.style.display = 'none';
+
+        if(slows.length > 0) {
+            sBox.style.display = 'block';
+            sTags.innerHTML = slows.map(t => `<span class="tag tag-slow">${t}</span>`).join('');
+        } else sBox.style.display = 'none';
+    }
+
+    function show(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+</script>
+</body>
+</html>
