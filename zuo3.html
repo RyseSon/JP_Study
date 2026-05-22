@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日语浊音专项测验 (K/S/T行)</title>
+    <style>
+        :root {
+            --primary: #2C3E50;
+            --accent: #E67E22; /* 浊音强化采用极具警示度的橙色 */
+            --bg: #F8FAFC;
+            --card: #FFFFFF;
+            --text: #1E293B;
+            --correct: #10B981;
+            --wrong: #EF4444;
+            --slow: #F59E0B;
+            --border: #E2E8F0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 20px;
+        }
+
+        .container {
+            background: var(--card);
+            width: 100%; max-width: 550px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            padding: 30px; position: relative;
+            border-top: 6px solid var(--accent);
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        h1 { font-size: 24px; text-align: center; margin-bottom: 8px; color: var(--primary); }
+        .subtitle { text-align: center; color: #64748B; font-size: 14px; margin-bottom: 25px; }
+
+        .meta { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; font-weight: bold; color: var(--accent); }
+        .progress-bar { width: 100%; height: 6px; background: #E2E8F0; border-radius: 3px; margin-bottom: 25px; overflow: hidden; }
+        #progress-fill { width: 0%; height: 100%; background: var(--accent); transition: width 0.3s; }
+
+        .q-card {
+            background: #F1F5F9; border-radius: 15px; padding: 50px 10px; margin-bottom: 25px;
+            text-align: center; border: 1px solid var(--border);
+        }
+        #q-text { font-size: 95px; font-weight: bold; color: var(--primary); }
+        .q-hint { font-size: 13px; color: #94A3B8; margin-top: 10px; font-weight: 500; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        button { cursor: pointer; border: none; border-radius: 12px; font-family: inherit; transition: all 0.2s; font-weight: 600; }
+        .btn-main { background: var(--primary); color: white; padding: 16px; width: 100%; font-size: 18px; margin-top: 10px; }
+        .btn-main:hover { background: #1E293B; }
+        .btn-opt { background: #FFFFFF; padding: 20px 10px; font-size: 24px; border: 2px solid var(--border); color: var(--primary); }
+        .btn-opt:hover:not(:disabled) { border-color: var(--accent); background: #FFF7ED; }
+        .btn-opt.correct { background: var(--correct) !important; color: white; border-color: var(--correct); }
+        .btn-opt.wrong { background: var(--wrong) !important; color: white; border-color: var(--wrong); animation: shake 0.4s; }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-item { background: #F8FAFC; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
+        .stat-label { font-size: 11px; color: #64748B; display: block; text-transform: uppercase; margin-bottom: 4px; }
+        .stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
+
+        .rank-badge { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: bold; color: white; }
+
+        .log-box { text-align: left; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid transparent; }
+        .log-title { font-size: 13px; font-weight: 800; margin-bottom: 10px; }
+        .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; background: white; border: 1.5px solid currentColor; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 开始屏 -->
+    <div id="sc-start" class="screen active">
+        <h1>浊音专项识音测验 (K/S/T行)</h1>
+        <p class="subtitle">涵盖 が行、ざ行、だ行 共15个假名<br>30题矩阵全随机，专项攻克迟缓与混淆项</p>
+        <button class="btn-main" onclick="initTest()">开始盲测</button>
+    </div>
+
+    <!-- 测验屏 -->
+    <div id="sc-quiz" class="screen">
+        <div class="meta">
+            <span id="prog-num">0 / 30</span>
+            <span id="timer">0.0s</span>
+        </div>
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+        <div class="q-card">
+            <span id="q-text">-</span>
+            <div id="q-type-hint" class="q-hint">请选择正确的罗马音</div>
+        </div>
+        <div class="options-grid" id="opt-container"></div>
+    </div>
+
+    <!-- 结果屏 -->
+    <div id="sc-result" class="screen">
+        <h1>专项测验分析报告</h1>
+        <div id="res-rank" class="rank-badge">-</div>
+
+        <div class="stat-grid">
+            <div class="stat-item"><span class="stat-label">平均反应</span><span id="res-time" class="stat-val">0s</span></div>
+            <div class="stat-item"><span class="stat-label">准确率</span><span id="res-acc" class="stat-val">0%</span></div>
+        </div>
+
+        <div id="log-err-box" class="log-box" style="background:#FEF2F2; border-color:#FEE2E2; display:none;">
+            <div class="log-title" style="color:#B91C1C;">❌ 识别错误项 (建议重记)：</div>
+            <div id="list-err" class="tag-list"></div>
+        </div>
+
+        <div id="log-slow-box" class="log-box" style="background:#FFFBEB; border-color:#FEF3C7;">
+            <div class="log-title" style="color:#B45309;">⏳ 反应迟缓项 (>3s)：</div>
+            <div id="list-slow" class="tag-list"></div>
+        </div>
+
+        <button class="btn-main" onclick="initTest()">重新挑战</button>
+    </div>
+</div>
+
+<script>
+    // K、S、T行对应的浊音数据集（15个假名）
+    const KANA_VOICED = [
+        // が行 (K行浊音)
+        {r:'ga', h:'が', k:'ガ'}, {r:'gi', h:'ぎ', k:'ギ'}, {r:'gu', h:'ぐ', k:'グ'}, {r:'ge', h:'げ', k:'ゲ'}, {r:'go', h:'ご', k:'ゴ'},
+        // ざ行 (S行浊音)
+        {r:'za', h:'ざ', k:'ザ'}, {r:'ji', h:'じ', k:'ジ'}, {r:'zu', h:'ず', k:'ズ'}, {r:'ze', h:'ぜ', k:'ゼ'}, {r:'zo', h:'ぞ', k:'ゾ'},
+        // だ行 (T行浊音)
+        {r:'da', h:'だ', k:'ダ'}, {r:'ji', h:'ぢ', k:'ヂ'}, {r:'zu', h:'づ', k:'ヅ'}, {r:'de', h:'で', k:'デ'}, {r:'do', h:'ど', k:'ド'}
+    ];
+
+    const RANKS = [
+        {max: 0.7, name: "肌肉记忆级 (Instant Reflex)", color: "#10B981"},
+        {max: 1.2, name: "流畅熟练级 (Fluent)", color: "#3B82F6"},
+        {max: 2.0, name: "标准合格级 (Competent)", color: "#F59E0B"},
+        {max: 3.5, name: "逻辑推导级 (Thinking)", color: "#E67E22"},
+        {max: Infinity, name: "重构强化级 (Struggling)", color: "#EF4444"}
+    ];
+
+    let quiz = [], cur = 0, history = [];
+    let qStart = 0, locked = false;
+    const LIMIT = 30; // 15个平假名 + 15个片假名 = 30题全覆盖
+
+    function initTest() {
+        let pool = [];
+        KANA_VOICED.forEach(d => {
+            const info = `${d.h}/${d.k} (${d.r})`;
+            pool.push({ q: d.h, a: d.r, info: info, hint: '请选择正确的平假名浊音读音' });
+            pool.push({ q: d.k, a: d.r, info: info, hint: '请选择正确的片假名浊音读音' });
+        });
+        
+        // 矩阵彻底无序随机洗牌
+        quiz = pool.sort(() => Math.random() - 0.5);
+        cur = 0; history = [];
+        show('sc-quiz');
+        render();
+    }
+
+    function render() {
+        if (cur >= LIMIT) return finish();
+        const q = quiz[cur];
+        locked = false;
+
+        document.getElementById('prog-num').innerText = `${cur + 1} / ${LIMIT}`;
+        document.getElementById('progress-fill').style.width = `${(cur / LIMIT) * 100}%`;
+        document.getElementById('q-text').innerText = q.q;
+        document.getElementById('q-type-hint').innerText = q.hint;
+
+        const container = document.getElementById('opt-container');
+        container.innerHTML = '';
+
+        // 仅抓取浊音的罗马音作为选项池
+        let optionPool = KANA_VOICED.map(x => x.r);
+
+        // 提取核心正确项 + 3个随机浊音干扰项
+        let finalOpts = [q.a];
+        let distractors = optionPool.filter(o => o !== q.a);
+        
+        // 特殊处理：じ/ぢ、ず/づ 的干扰逻辑优化（不重复抓取相同罗马音）
+        distractors = [...new Set(distractors)]; 
+        distractors.sort(() => Math.random() - 0.5);
+        
+        finalOpts.push(...distractors.slice(0, 3));
+        finalOpts.sort(() => Math.random() - 0.5);
+
+        finalOpts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-opt';
+            btn.innerText = opt;
+            btn.onclick = () => check(opt, q.a, btn, q.info);
+            container.appendChild(btn);
+        });
+
+        qStart = performance.now();
+    }
+
+    function check(val, ans, btn, info) {
+        if (!locked) {
+            const time = (performance.now() - qStart) / 1000;
+            history.push({ info: info, time: time, ok: val === ans });
+            locked = true;
+        }
+
+        if (val === ans) {
+            btn.classList.add('correct');
+            document.querySelectorAll('.btn-opt').forEach(b => b.disabled = true);
+            setTimeout(() => { cur++; render(); }, 300);
+        } else {
+            btn.classList.add('wrong');
+        }
+    }
+
+    function finish() {
+        show('sc-result');
+        const avg = history.reduce((s, x) => s + x.time, 0) / history.length;
+        const acc = (history.filter(x => x.ok).length / history.length) * 100;
+
+        document.getElementById('res-time').innerText = avg.toFixed(2) + 's';
+        document.getElementById('res-acc').innerText = acc.toFixed(0) + '%';
+
+        const r = RANKS.find(x => avg <= x.max);
+        const banner = document.getElementById('res-rank');
+        banner.innerText = r.name;
+        banner.style.backgroundColor = r.color;
+
+        // 分析过滤
+        const errs = [...new Set(history.filter(x => !x.ok).map(x => x.info))];
+        const slows = [...new Set(history.filter(x => x.ok && x.time > 3).map(x => x.info))];
+
+        const eBox = document.getElementById('log-err-box'), eList = document.getElementById('list-err');
+        const sBox = document.getElementById('log-slow-box'), sList = document.getElementById('list-slow');
+
+        if (errs.length > 0) {
+            eBox.style.display = 'block';
+            eList.innerHTML = errs.map(t => `<span class="tag" style="color:#B91C1C">${t}</span>`).join('');
+        } else eBox.style.display = 'none';
+
+        if (slows.length > 0) {
+            sBox.style.display = 'block';
+            sList.innerHTML = slows.map(t => `<span class="tag" style="color:#B45309">${t}</span>`).join('');
+        } else {
+            sList.innerHTML = '<div style="font-size:12px; color:#94A3B8;">无迟缓项！对浊音的响应速度极快。</div>';
+        }
+    }
+
+    function show(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+</script>
+</body>
+</html>
