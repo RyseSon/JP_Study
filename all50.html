@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日语五十音全量超级盲测 (清/浊/半浊)</title>
+    <title>五十音分行自选专项测验</title>
     <style>
         :root {
             --primary: #1E293B;
-            --accent: #6366F1; /* 全量终极版采用代表深度的靛蓝色 */
+            --accent: #3B82F6;
             --bg: #F8FAFC;
             --card: #FFFFFF;
             --text: #0F172A;
@@ -42,6 +42,22 @@
         h1 { font-size: 24px; text-align: center; margin-bottom: 8px; color: var(--primary); }
         .subtitle { text-align: center; color: #64748B; font-size: 14px; margin-bottom: 25px; }
 
+        .section-title { font-size: 14px; font-weight: 800; color: #64748B; margin: 15px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .cb-label {
+            display: flex; align-items: center; justify-content: center;
+            background: #F1F5F9; border: 2px solid #E2E8F0; padding: 10px;
+            border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;
+            user-select: none; transition: all 0.2s;
+        }
+        .cb-label input { display: none; }
+        .cb-label:hover { border-color: #CBD5E1; }
+        .cb-label.checked { background: #EFF6FF; border-color: var(--accent); color: var(--accent); }
+
+        .ctrl-btns { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-sub { background: #E2E8F0; color: var(--primary); padding: 8px 12px; font-size: 12px; border-radius: 6px; flex: 1; }
+        .btn-sub:hover { background: #CBD5E1; }
+
         .meta { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; font-weight: bold; color: var(--accent); }
         .progress-bar { width: 100%; height: 6px; background: #E2E8F0; border-radius: 3px; margin-bottom: 25px; overflow: hidden; }
         #progress-fill { width: 0%; height: 100%; background: var(--accent); transition: width 0.3s; }
@@ -57,8 +73,9 @@
         button { cursor: pointer; border: none; border-radius: 12px; font-family: inherit; transition: all 0.2s; font-weight: 600; }
         .btn-main { background: var(--accent); color: white; padding: 16px; width: 100%; font-size: 18px; margin-top: 10px; border-radius: 12px; }
         .btn-main:hover { filter: brightness(0.9); }
+        .btn-main:disabled { background: #CBD5E1; cursor: not-allowed; }
         .btn-opt { background: #FFFFFF; padding: 20px 10px; font-size: 24px; border: 2px solid var(--border); color: var(--primary); }
-        .btn-opt:hover:not(:disabled) { border-color: var(--accent); background: #EEF2FF; }
+        .btn-opt:hover:not(:disabled) { border-color: var(--accent); background: #EFF6FF; }
         .btn-opt.correct { background: var(--correct) !important; color: white; border-color: var(--correct); }
         .btn-opt.wrong { background: var(--wrong) !important; color: white; border-color: var(--wrong); animation: shake 0.4s; }
 
@@ -68,7 +85,6 @@
         .stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
 
         .rank-badge { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: bold; color: white; }
-
         .log-box { text-align: left; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid transparent; max-height: 200px; overflow-y: auto; }
         .log-title { font-size: 13px; font-weight: 800; margin-bottom: 10px; }
         .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -84,17 +100,31 @@
 <body>
 
 <div class="container">
-    <!-- 开始屏 -->
+    <!-- 开始屏 / 自选行首页 -->
     <div id="sc-start" class="screen active">
-        <h1>五十音全量超级盲测</h1>
-        <p class="subtitle">融合 清音、浊音、半浊音 全部字形<br>142题全矩阵地毯式轰炸，炼就极致肌肉记忆</p>
-        <button class="btn-main" onclick="initTest()">开启地狱模式</button>
+        <h1>五十音分行自选专项测验</h1>
+        <p class="subtitle">勾选特定行进行各个击破，逐步将逻辑推导训练为肌肉记忆</p>
+        
+        <div class="ctrl-btns">
+            <button class="btn-sub" onclick="selectGroup('all')">全选</button>
+            <button class="btn-sub" onclick="selectGroup('clear')">全清</button>
+            <button class="btn-sub" onclick="selectGroup('clearVoiced')">只练清音</button>
+            <button class="btn-sub" onclick="selectGroup('onlyVoiced')">只练浊/半浊</button>
+        </div>
+
+        <div class="section-title">清音区域</div>
+        <div class="checkbox-grid" id="grid-clear"></div>
+
+        <div class="section-title">浊音/半浊音区域</div>
+        <div class="checkbox-grid" id="grid-voiced"></div>
+
+        <button class="btn-main" id="btn-start-quiz" onclick="initTest()" disabled>请至少选择一行</button>
     </div>
 
     <!-- 测验屏 -->
     <div id="sc-quiz" class="screen">
         <div class="meta">
-            <span id="prog-num">0 / 142</span>
+            <span id="prog-num">0 / 0</span>
             <span id="timer">0.0s</span>
         </div>
         <div class="progress-bar"><div id="progress-fill"></div></div>
@@ -107,7 +137,7 @@
 
     <!-- 结果屏 -->
     <div id="sc-result" class="screen">
-        <h1>通关数据分析报告</h1>
+        <h1>专项测验分析报告</h1>
         <div id="res-rank" class="rank-badge">-</div>
 
         <div class="stat-grid">
@@ -116,7 +146,7 @@
         </div>
 
         <div id="log-err-box" class="log-box" style="background:#FEF2F2; border-color:#FEE2E2; display:none;">
-            <div class="log-title" style="color:#B91C1C;">❌ 识别错误项 (急需攻克)：</div>
+            <div class="log-title" style="color:#B91C1C;">❌ 识别错误项 (建立卡片)：</div>
             <div id="list-err" class="tag-list"></div>
         </div>
 
@@ -125,85 +155,133 @@
             <div id="list-slow" class="tag-list"></div>
         </div>
 
-        <button class="btn-main" onclick="initTest()">再次挑战</button>
+        <button class="btn-main" onclick="backToHome()">返回自选首页</button>
     </div>
 </div>
 
 <script>
-    // 终极全量数据集（71个核心假名）
-    const FULL_KANA_DATA = [
-        // --- 清音 (46个) ---
-        {r:'a', h:'あ', k:'ア'}, {r:'i', h:'い', k:'イ'}, {r:'u', h:'う', k:'ウ'}, {r:'e', h:'え', k:'エ'}, {r:'o', h:'お', k:'オ'},
-        {r:'ka', h:'か', k:'カ'}, {r:'ki', h:'き', k:'キ'}, {r:'ku', h:'く', k:'ク'}, {r:'ke', h:'け', k:'ケ'}, {r:'ko', h:'こ', k:'コ'},
-        {r:'sa', h:'さ', k:'サ'}, {r:'shi', h:'し', k:'シ'}, {r:'su', h:'す', k:'ス'}, {r:'se', h:'せ', k:'セ'}, {r:'so', h:'そ', k:'ソ'},
-        {r:'ta', h:'た', k:'タ'}, {r:'chi', h:'ち', k:'チ'}, {r:'tsu', h:'つ', k:'ツ'}, {r:'te', h:'て', k:'テ'}, {r:'to', h:'と', k:'ト'},
-        {r:'na', h:'な', k:'ナ'}, {r:'ni', h:'に', k:'ニ'}, {r:'nu', h:'ぬ', k:'ヌ'}, {r:'ne', h:'ね', k:'ネ'}, {r:'no', h:'の', k:'ノ'},
-        {r:'ha', h:'は', k:'ハ'}, {r:'hi', h:'ひ', k:'ヒ'}, {r:'fu', h:'ふ', k:'フ'}, {r:'he', h:'へ', k:'ヘ'}, {r:'ho', h:'ほ', k:'ホ'},
-        {r:'ma', h:'ま', k:'マ'}, {r:'mi', h:'み', k:'ミ'}, {r:'mu', h:'む', k:'ム'}, {r:'me', h:'め', k:'メ'}, {r:'mo', h:'も', k:'モ'},
-        {r:'ya', h:'や', k:'ヤ'}, {r:'yu', h:'ゆ', k:'ユ'}, {r:'yo', h:'よ', k:'ヨ'},
-        {r:'ra', h:'ら', k:'ラ'}, {r:'ri', h:'り', k:'リ'}, {r:'ru', h:'る', k:'ル'}, {r:'re', h:'れ', k:'レ'}, {r:'ro', h:'ろ', k:'ロ'},
-        {r:'wa', h:'わ', k:'ワ'}, {r:'o', h:'を', k:'ヲ'}, {r:'n', h:'ん', k:'ン'},
-
-        // --- 浊音 (20个) ---
-        {r:'ga', h:'が', k:'ガ'}, {r:'gi', h:'ぎ', k:'ギ'}, {r:'gu', h:'ぐ', k:'グ'}, {r:'ge', h:'げ', k:'ゲ'}, {r:'go', h:'ご', k:'ゴ'},
-        {r:'za', h:'ざ', k:'ザ'}, {r:'ji', h:'じ', k:'ジ'}, {r:'zu', h:'ず', k:'ズ'}, {r:'ze', h:'ぜ', k:'ゼ'}, {r:'zo', h:'ぞ', k:'ゾ'},
-        {r:'da', h:'だ', k:'ダ'}, {r:'ji', h:'ぢ', k:'ヂ'}, {r:'zu', h:'づ', k:'ヅ'}, {r:'de', h:'で', k:'デ'}, {r:'do', h:'ど', k:'ド'},
-        {r:'ba', h:'ば', k:'バ'}, {r:'bi', h:'び', k:'ビ'}, {r:'bu', h:'ぶ', k:'ブ'}, {r:'be', h:'べ', k:'ベ'}, {r:'bo', h:'ぼ', k:'ボ'},
-
-        // --- 半浊音 (5个) ---
-        {r:'pa', h:'ぱ', k:'パ'}, {r:'pi', h:'ぴ', k:'ピ'}, {r:'pu', h:'ぷ', k:'プ'}, {r:'pe', h:'ぺ', k:'ペ'}, {r:'po', h:'ぽ', k:'ポ'}
-    ];
+    // 经严格校对的五十音纯净数据集
+    const KANA_ROWS = {
+        // 清音
+        'A行': [{r:'a', h:'あ', k:'ア'}, {r:'i', h:'い', k:'イ'}, {r:'u', h:'う', k:'ウ'}, {r:'e', h:'え', k:'エ'}, {r:'o', h:'お', k:'オ'}],
+        'K行': [{r:'ka', h:'か', k:'カ'}, {r:'ki', h:'き', k:'キ'}, {r:'ku', h:'く', k:'ク'}, {r:'ke', h:'け', k:'ケ'}, {r:'ko', h:'こ', k:'コ'}],
+        'S行': [{r:'sa', h:'さ', k:'サ'}, {r:'shi', h:'し', k:'シ'}, {r:'su', h:'す', k:'ス'}, {r:'se', h:'せ', k:'セ'}, {r:'so', h:'そ', k:'ソ'}],
+        'T行': [{r:'ta', h:'た', k:'タ'}, {r:'chi', h:'ち', k:'チ'}, {r:'tsu', h:'つ', k:'ツ'}, {r:'te', h:'て', k:'テ'}, {r:'to', h:'之'}],
+        'N行': [{r:'na', h:'な', k:'ナ'}, {r:'ni', h:'に', k:'ニ'}, {r:'nu', h:'ぬ', k:'ヌ'}, {r:'ne', h:'ね', k:'ネ'}, {r:'no', h:'の', k:'ノ'}],
+        'H行': [{r:'ha', h:'は', k:'ハ'}, {r:'hi', h:'ひ', k:'ヒ'}, {r:'fu', h:'ふ', k:'フ'}, {r:'he', h:'へ', k:'ヘ'}, {r:'ho', h:'ほ', k:'ホ'}],
+        'M行': [{r:'ma', h:'ま', k:'マ'}, {r:'mi', h:'み', k:'ミ'}, {r:'mu', h:'む', k:'ム'}, {r:'me', h:'め', k:'メ'}, {r:'mo', h:'も', k:'モ'}],
+        'Y行': [{r:'ya', h:'や', k:'ヤ'}, {r:'yu', h:'ゆ', k:'ユ'}, {r:'yo', h:'よ', k:'ヨ'}],
+        'R行': [{r:'ra', h:'ら', k:'ラ'}, {r:'ri', h:'り', k:'リ'}, {r:'ru', h:'る', k:'ル'}, {r:'re', h:'れ', k:'レ'}, {r:'ro', h:'ろ', k:'ロ'}],
+        'W/N行':[{r:'wa', h:'わ', k:'ワ'}, {r:'o', h:'を', k:'ヲ'}, {r:'n', h:'ん', k:'ン'}],
+        
+        // 浊音 / 半浊音
+        'G行(浊)': [{r:'ga', h:'が', k:'ガ'}, {r:'gi', h:'ぎ', k:'ギ'}, {r:'gu', h:'ぐ', k:'グ'}, {r:'ge', h:'げ', k:'ゲ'}, {r:'go', h:'ご', k:'ゴ'}],
+        'Z行(浊)': [{r:'za', h:'ざ', k:'ザ'}, {r:'ji', h:'じ', k:'ジ'}, {r:'zu', h:'ず', k:'ズ'}, {r:'ze', h:'ぜ', k:'ゼ'}, {r:'zo', h:'ぞ', k:'ゾ'}],
+        'D行(浊)': [{r:'da', h:'だ', k:'ダ'}, {r:'ji', h:'ぢ', k:'ヂ'}, {r:'zu', h:'づ', k:'ヅ'}, {r:'de', h:'で', k:'デ'}, {r:'do', h:'ど', k:'ド'}],
+        'B行(浊)': [{r:'ba', h:'ば', k:'バ'}, {r:'bi', h:'び', k:'ビ'}, {r:'bu', h:'ぶ', k:'ブ'}, {r:'be', h:'べ', k:'ベ'}, {r:'bo', h:'ぼ', k:'ボ'}],
+        'P行(半)': [{r:'pa', h:'ぱ', k:'パ'}, {r:'pi', h:'ぴ', k:'ピ'}, {r:'pu', h:'ぷ', k:'プ'}, {r:'pe', h:'ぺ', k:'ペ'}, {r:'po', h:'ぽ', k:'ポ'}]
+    };
 
     const RANKS = [
-        {max: 0.7, name: "大宗师·绝对反射 (Instant Reflex)", color: "#10B981"},
-        {max: 1.2, name: "本能流利级 (Fluent)", color: "#3B82F6"},
-        {max: 2.0, name: "标准合格级 (Competent)", color: "#F59E0B"},
-        {max: 3.5, name: "中枢迟缓级 (Thinking)", color: "#E67E22"},
-        {max: Infinity, name: "回炉重铁级 (Struggling)", color: "#EF4444"}
+        {max: 0.7, name: "绝对反射·肌肉记忆 (Instant Reflex)", color: "#10B981"},
+        {max: 1.5, name: "流畅过渡级 (Fluent)", color: "#3B82F6"},
+        {max: 2.5, name: "标准合格级 (Competent)", color: "#F59E0B"},
+        {max: 4.0, name: "逻辑推导级 (Thinking)", color: "#E67E22"},
+        {max: Infinity, name: "重构强化级 (Struggling)", color: "#EF4444"}
     ];
 
     let quiz = [], cur = 0, history = [];
-    let qStart = 0, locked = false;
-    const LIMIT = 142; // 71平假名 + 71片假名 = 142题全量覆盖
+    let qStart = 0, locked = false, totalTasks = 0;
+
+    window.onload = function() {
+        const clearContainer = document.getElementById('grid-clear');
+        const voicedContainer = document.getElementById('grid-voiced');
+
+        Object.keys(KANA_ROWS).forEach(rowName => {
+            const isVoiced = rowName.includes('浊') || rowName.includes('半');
+            const label = document.createElement('label');
+            label.className = 'cb-label';
+            label.innerHTML = `<input type="checkbox" value="${rowName}" onchange="handleCheckboxChange(this)"> ${rowName.replace('(浊)','').replace('(半)','')}`;
+            
+            if (isVoiced) voicedContainer.appendChild(label);
+            else clearContainer.appendChild(label);
+        });
+    }
+
+    function handleCheckboxChange(cb) {
+        if (cb.checked) cb.parentElement.classList.add('checked');
+        else cb.parentElement.classList.remove('checked');
+        
+        const checkedCount = document.querySelectorAll('.cb-label input:checked').length;
+        const startBtn = document.getElementById('btn-start-quiz');
+        if (checkedCount > 0) {
+            startBtn.removeAttribute('disabled');
+            startBtn.innerText = `开启专项测验`;
+        } else {
+            startBtn.setAttribute('disabled', 'true');
+            startBtn.innerText = `请至少选择一行`;
+        }
+    }
+
+    function selectGroup(type) {
+        document.querySelectorAll('.cb-label input').forEach(cb => {
+            const isVoiced = cb.value.includes('浊') || cb.value.includes('半');
+            if (type === 'all') cb.checked = true;
+            else if (type === 'clear') cb.checked = false;
+            else if (type === 'clearVoiced') cb.checked = !isVoiced;
+            else if (type === 'onlyVoiced') cb.checked = isVoiced;
+            
+            handleCheckboxChange(cb);
+        });
+    }
 
     function initTest() {
+        let selectedRows = [];
+        document.querySelectorAll('.cb-label input:checked').forEach(cb => {
+            selectedRows.push(cb.value);
+        });
+
+        let rawPool = [];
+        selectedRows.forEach(row => {
+            rawPool.push(...KANA_ROWS[row]);
+        });
+
         let pool = [];
-        FULL_KANA_DATA.forEach(d => {
+        rawPool.forEach(d => {
             const info = `${d.h}/${d.k} (${d.r})`;
             pool.push({ q: d.h, a: d.r, info: info, hint: '请选择正确的平假名读音' });
             pool.push({ q: d.k, a: d.r, info: info, hint: '请选择正确的片假名读音' });
         });
-        
-        // 142道题进行深度洗牌打乱
+
         quiz = pool.sort(() => Math.random() - 0.5);
+        totalTasks = quiz.length;
         cur = 0; history = [];
+        
         show('sc-quiz');
         render();
     }
 
     function render() {
-        if (cur >= LIMIT) return finish();
+        if (cur >= totalTasks) return finish();
         const q = quiz[cur];
         locked = false;
 
-        document.getElementById('prog-num').innerText = `${cur + 1} / ${LIMIT}`;
-        document.getElementById('progress-fill').style.width = `${(cur / LIMIT) * 100}%`;
+        document.getElementById('prog-num').innerText = `${cur + 1} / ${totalTasks}`;
+        document.getElementById('progress-fill').style.width = `${(cur / totalTasks) * 100}%`;
         document.getElementById('q-text').innerText = q.q;
         document.getElementById('q-type-hint').innerText = q.hint;
 
         const container = document.getElementById('opt-container');
         container.innerHTML = '';
 
-        // 提取所有可能的读音池并利用 Set 去重（保证じ/ぢ、ず/づ不重复）
-        let optionPool = [...new Set(FULL_KANA_DATA.map(x => x.r))];
+        let allOptions = [];
+        Object.keys(KANA_ROWS).forEach(r => allOptions.push(...KANA_ROWS[r].map(x => x.r)));
+        let optionPool = [...new Set(allOptions)];
 
-        // 抽取正确项 + 3个绝对不重复的随机干扰读音
         let finalOpts = [q.a];
         let distractors = optionPool.filter(o => o !== q.a);
         distractors.sort(() => Math.random() - 0.5);
         finalOpts.push(...distractors.slice(0, 3));
-        
-        // 洗牌打乱选项按钮的排布位置
         finalOpts.sort(() => Math.random() - 0.5);
 
         finalOpts.forEach(opt => {
@@ -227,7 +305,7 @@
         if (val === ans) {
             btn.classList.add('correct');
             document.querySelectorAll('.btn-opt').forEach(b => b.disabled = true);
-            setTimeout(() => { cur++; render(); }, 250); // 终极模式略微缩短切换过渡时间
+            setTimeout(() => { cur++; render(); }, 250);
         } else {
             btn.classList.add('wrong');
         }
@@ -246,7 +324,6 @@
         banner.innerText = r.name;
         banner.style.backgroundColor = r.color;
 
-        // 分析与输出
         const errs = [...new Set(history.filter(x => !x.ok).map(x => x.info))];
         const slows = [...new Set(history.filter(x => x.ok && x.time > 3).map(x => x.info))];
 
@@ -262,8 +339,12 @@
             sBox.style.display = 'block';
             sList.innerHTML = slows.map(t => `<span class="tag" style="color:#B45309">${t}</span>`).join('');
         } else {
-            sList.innerHTML = '<div style="font-size:12px; color:#94A3B8;">无迟缓项！全量测试通过。</div>';
+            sList.innerHTML = '<div style="font-size:12px; color:#94A3B8;">优秀！当前所选专项中无任何迟缓项。</div>';
         }
+    }
+
+    function backToHome() {
+        show('sc-start');
     }
 
     function show(id) {
