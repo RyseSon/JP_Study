@@ -160,13 +160,13 @@
 </div>
 
 <script>
-    // 经严格校对的五十音纯净数据集
+    // 经过逐字核对的五十音纯净数据集，确保没有任何 undefined 和汉字混入
     const KANA_ROWS = {
         // 清音
         'A行': [{r:'a', h:'あ', k:'ア'}, {r:'i', h:'い', k:'イ'}, {r:'u', h:'う', k:'ウ'}, {r:'e', h:'え', k:'エ'}, {r:'o', h:'お', k:'オ'}],
         'K行': [{r:'ka', h:'か', k:'カ'}, {r:'ki', h:'き', k:'キ'}, {r:'ku', h:'く', k:'ク'}, {r:'ke', h:'け', k:'ケ'}, {r:'ko', h:'こ', k:'コ'}],
         'S行': [{r:'sa', h:'さ', k:'サ'}, {r:'shi', h:'し', k:'シ'}, {r:'su', h:'す', k:'ス'}, {r:'se', h:'せ', k:'セ'}, {r:'so', h:'そ', k:'ソ'}],
-        'T行': [{r:'ta', h:'た', k:'タ'}, {r:'chi', h:'ち', k:'チ'}, {r:'tsu', h:'つ', k:'ツ'}, {r:'te', h:'て', k:'テ'}, {r:'to', h:'之'}],
+        'T行': [{r:'ta', h:'た', k:'タ'}, {r:'chi', h:'ち', k:'チ'}, {r:'tsu', h:'つ', k:'ツ'}, {r:'te', h:'て', k:'テ'}, {r:'to', h:'と', k:'ト'}], // 修复了这里丢失的 k 和错误的 h
         'N行': [{r:'na', h:'な', k:'ナ'}, {r:'ni', h:'に', k:'ニ'}, {r:'nu', h:'ぬ', k:'ヌ'}, {r:'ne', h:'ね', k:'ネ'}, {r:'no', h:'の', k:'ノ'}],
         'H行': [{r:'ha', h:'は', k:'ハ'}, {r:'hi', h:'ひ', k:'ヒ'}, {r:'fu', h:'ふ', k:'フ'}, {r:'he', h:'へ', k:'ヘ'}, {r:'ho', h:'ほ', k:'ホ'}],
         'M行': [{r:'ma', h:'ま', k:'マ'}, {r:'mi', h:'み', k:'ミ'}, {r:'mu', h:'む', k:'ム'}, {r:'me', h:'め', k:'メ'}, {r:'mo', h:'も', k:'モ'}],
@@ -278,10 +278,13 @@
         Object.keys(KANA_ROWS).forEach(r => allOptions.push(...KANA_ROWS[r].map(x => x.r)));
         let optionPool = [...new Set(allOptions)];
 
+        // 正确答案绝对注入
         let finalOpts = [q.a];
+        // 过滤生成干扰项，保证干扰项不包含正确答案
         let distractors = optionPool.filter(o => o !== q.a);
         distractors.sort(() => Math.random() - 0.5);
         finalOpts.push(...distractors.slice(0, 3));
+        // 彻底打乱4个选项
         finalOpts.sort(() => Math.random() - 0.5);
 
         finalOpts.forEach(opt => {
