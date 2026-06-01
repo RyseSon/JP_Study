@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五十音「拗音」专项记忆测验</title>
+    <style>
+        :root {
+            --primary: #1E293B;
+            --accent: #8B5CF6; /* 拗音采用紫色调以作区分 */
+            --bg: #F8FAFC;
+            --card: #FFFFFF;
+            --text: #0F172A;
+            --correct: #10B981;
+            --wrong: #EF4444;
+            --slow: #F59E0B;
+            --border: #E2E8F0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 20px;
+        }
+
+        .container {
+            background: var(--card);
+            width: 100%; max-width: 550px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 30px; position: relative;
+            border-top: 6px solid var(--accent);
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        h1 { font-size: 24px; text-align: center; margin-bottom: 8px; color: var(--primary); }
+        .subtitle { text-align: center; color: #64748B; font-size: 14px; margin-bottom: 25px; }
+
+        .section-title { font-size: 14px; font-weight: 800; color: #64748B; margin: 15px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .cb-label {
+            display: flex; align-items: center; justify-content: center;
+            background: #F1F5F9; border: 2px solid #E2E8F0; padding: 10px;
+            border-radius: 10px; cursor: pointer; font-size: 14px; font-weight: 600;
+            user-select: none; transition: all 0.2s;
+        }
+        .cb-label input { display: none; }
+        .cb-label:hover { border-color: #CBD5E1; }
+        .cb-label.checked { background: #F5F3FF; border-color: var(--accent); color: var(--accent); }
+
+        .ctrl-btns { display: flex; gap: 10px; margin-bottom: 20px; }
+        .btn-sub { background: #E2E8F0; color: var(--primary); padding: 8px 12px; font-size: 12px; border-radius: 6px; flex: 1; }
+        .btn-sub:hover { background: #CBD5E1; }
+
+        .meta { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; font-weight: bold; color: var(--accent); }
+        .progress-bar { width: 100%; height: 6px; background: #E2E8F0; border-radius: 3px; margin-bottom: 25px; overflow: hidden; }
+        #progress-fill { width: 0%; height: 100%; background: var(--accent); transition: width 0.3s; }
+
+        /* 高度拉开防眼角余光进行“比对辨析” */
+        .q-card {
+            background: #F1F5F9; border-radius: 15px; padding: 80px 10px; 
+            margin-bottom: 15vh; text-align: center; border: 1px solid var(--border);
+        }
+        #q-text { font-size: 90px; font-weight: bold; color: var(--primary); line-height: 1; letter-spacing: -2px; }
+        .q-hint { font-size: 13px; color: #94A3B8; margin-top: 15px; font-weight: 500; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        button { cursor: pointer; border: none; border-radius: 12px; font-family: inherit; transition: all 0.2s; font-weight: 600; }
+        
+        .btn-main { background: var(--accent); color: white; padding: 16px; width: 100%; font-size: 18px; margin-top: 10px; border-radius: 12px; }
+        .btn-main:hover { filter: brightness(0.9); }
+        .btn-main:disabled { background: #CBD5E1; cursor: not-allowed; }
+        
+        .btn-reinforce { background: var(--slow); margin-bottom: 10px; }
+        .btn-reinforce:hover { background: #D97706; }
+        .btn-back { background: #E2E8F0; color: var(--primary); }
+        .btn-back:hover { background: #CBD5E1; }
+
+        .btn-opt { background: #FFFFFF; padding: 20px 10px; font-size: 24px; border: 2px solid var(--border); color: var(--primary); }
+        .btn-opt:hover:not(:disabled) { border-color: var(--accent); background: #F5F3FF; }
+        .btn-opt.correct { background: var(--correct) !important; color: white; border-color: var(--correct); }
+        .btn-opt.wrong { background: var(--wrong) !important; color: white; border-color: var(--wrong); animation: shake 0.4s; }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-item { background: #F8FAFC; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
+        .stat-label { font-size: 11px; color: #64748B; display: block; text-transform: uppercase; margin-bottom: 4px; }
+        .stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
+
+        .rank-badge { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: bold; color: white; }
+        .log-box { text-align: left; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid transparent; max-height: 200px; overflow-y: auto; }
+        .log-title { font-size: 13px; font-weight: 800; margin-bottom: 10px; }
+        .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: bold; background: white; border: 1.5px solid currentColor; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="sc-start" class="screen active">
+        <h1>拗音专项测验</h1>
+        <p class="subtitle">拉开空间距离，杜绝眼角余光辨析选项，逼迫大脑进行深层检索</p>
+        
+        <div class="ctrl-btns">
+            <button class="btn-sub" onclick="selectGroup('all')">全选</button>
+            <button class="btn-sub" onclick="selectGroup('clear')">全清</button>
+            <button class="btn-sub" onclick="selectGroup('clearVoiced')">只练清拗音</button>
+            <button class="btn-sub" onclick="selectGroup('onlyVoiced')">只练浊拗音</button>
+        </div>
+
+        <div class="section-title">清拗音区域</div>
+        <div class="checkbox-grid" id="grid-clear"></div>
+
+        <div class="section-title">浊/半浊拗音区域</div>
+        <div class="checkbox-grid" id="grid-voiced"></div>
+
+        <button class="btn-main" id="btn-start-quiz" onclick="initTest()" disabled>请至少选择一个组合</button>
+    </div>
+
+    <div id="sc-quiz" class="screen">
+        <div class="meta">
+            <span id="prog-num">0 / 0</span>
+            <span id="timer">0.0s</span>
+        </div>
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+        <div class="q-card">
+            <span id="q-text">-</span>
+            <div id="q-type-hint" class="q-hint">请选择正确的罗马音</div>
+        </div>
+        <div class="options-grid" id="opt-container"></div>
+    </div>
+
+    <div id="sc-result" class="screen">
+        <h1>专项测验分析报告</h1>
+        <div id="res-rank" class="rank-badge">-</div>
+
+        <div class="stat-grid">
+            <div class="stat-item"><span class="stat-label">平均反应</span><span id="res-time" class="stat-val">0s</span></div>
+            <div class="stat-item"><span class="stat-label">准确率</span><span id="res-acc" class="stat-val">0%</span></div>
+        </div>
+
+        <div id="log-err-box" class="log-box" style="background:#FEF2F2; border-color:#FEE2E2; display:none;">
+            <div class="log-title" style="color:#B91C1C;">❌ 识别错误项：</div>
+            <div id="list-err" class="tag-list"></div>
+        </div>
+
+        <div id="log-slow-box" class="log-box" style="background:#FFFBEB; border-color:#FEF3C7;">
+            <div class="log-title" style="color:#B45309;">⏳ 反应迟缓项 (>3s)：</div>
+            <div id="list-slow" class="tag-list"></div>
+        </div>
+
+        <button id="btn-reinforce" class="btn-main btn-reinforce" onclick="startReinforceTest()" style="display:none;">
+            🚀 立即强化训练
+        </button>
+        <button class="btn-main btn-back" onclick="backToHome()">返回自选首页</button>
+    </div>
+</div>
+
+<script>
+    // 经多轮重审的拗音+拨音纯净矩阵，彻底排除汉字混记
+    const KANA_ROWS = {
+        // 清拗音
+        'K-(き)键': [{r:'kya', h:'きゃ', k:'キャ'}, {r:'kyu', h:'きゅ', k:'キュ'}, {r:'kyo', h:'きょ', k:'キョ'}],
+        'S-(し)键': [{r:'sha', h:'しゃ', k:'シャ'}, {r:'shu', h:'しゅ', k:'シュ'}, {r:'sho', h:'しょ', k:'ショ'}],
+        'T-(ち)键': [{r:'cha', h:'ちゃ', k:'チャ'}, {r:'chu', h:'ちゅ', k:'チュ'}, {r:'cho', h:'ちょ', k:'チョ'}],
+        'N-(に)键': [{r:'nya', h:'にゃ', k:'ニャ'}, {r:'nyu', h:'にゅ', k:'ニュ'}, {r:'nyo', h:'にょ', k:'ニョ'}],
+        'H-(ひ)键': [{r:'hya', h:'ひゃ', k:'ヒャ'}, {r:'hyu', h:'ひゅ', k:'ヒュ'}, {r:'hyo', h:'ひょ', k:'ヒョ'}],
+        'M-(み)键': [{r:'mya', h:'みゃ', k:'ミャ'}, {r:'myu', h:'みゅ', k:'ミュ'}, {r:'myo', h:'みょ', k:'ミョ'}],
+        'R-(り)键': [{r:'rya', h:'りゃ', k:'リャ'}, {r:'ryu', h:'りゅ', k:'リュ'}, {r:'ryo', h:'りょ', k:'リョ'}],
+        '拨音':     [{r:'n', h:'ん', k:'ン'}],
+
+        // 浊/半浊拗音
+        'G-(ぎ)浊': [{r:'gya', h:'ぎゃ', k:'ギャ'}, {r:'gyu', h:'ぎゅ', k:'ギュ'}, {r:'gyo', h:'ぎょ', k:'ギョ'}],
+        'Z-(じ)浊': [{r:'ja', h:'じゃ', k:'ジャ'}, {r:'ju', h:'じゅ', k:'ジュ'}, {r:'jo', h:'じょ', k:'ジョ'}],
+        'B-(び)浊': [{r:'bya', h:'びゃ', k:'ビャ'}, {r:'byu', h:'びゅ', k:'ビュ'}, {r:'byo', h:'びょ', k:'ビョ'}],
+        'P-(ぴ)半': [{r:'pya', h:'ぴゃ', k:'ピャ'}, {r:'pyu', h:'ぴゅ', k:'ピュ'}, {r:'pyo', h:'ぴょ', k:'ピョ'}]
+    };
+
+    const RANKS = [
+        {max: 0.8, name: "绝对反射·肌肉记忆 (Instant Reflex)", color: "#10B981"},
+        {max: 1.8, name: "流畅过渡级 (Fluent)", color: "#3B82F6"},
+        {max: 2.8, name: "标准合格级 (Competent)", color: "#F59E0B"},
+        {max: 4.5, name: "逻辑推导级 (Thinking)", color: "#E67E22"},
+        {max: Infinity, name: "重构强化级 (Struggling)", color: "#EF4444"}
+    ];
+
+    let quiz = [], cur = 0, history = [];
+    let qStart = 0, locked = false, totalTasks = 0;
+    
+    let globalOptionPool = [];
+    let reinforcePool = [];
+
+    window.onload = function() {
+        Object.keys(KANA_ROWS).forEach(r => globalOptionPool.push(...KANA_ROWS[r].map(x => x.r)));
+        globalOptionPool = [...new Set(globalOptionPool)];
+
+        const clearContainer = document.getElementById('grid-clear');
+        const voicedContainer = document.getElementById('grid-voiced');
+
+        Object.keys(KANA_ROWS).forEach(rowName => {
+            const isVoiced = rowName.includes('浊') || rowName.includes('半');
+            const label = document.createElement('label');
+            label.className = 'cb-label';
+            label.innerHTML = `<input type="checkbox" value="${rowName}" onchange="handleCheckboxChange(this)"> ${rowName}`;
+            
+            if (isVoiced) voicedContainer.appendChild(label);
+            else clearContainer.appendChild(label);
+        });
+    }
+
+    function handleCheckboxChange(cb) {
+        if (cb.checked) cb.parentElement.classList.add('checked');
+        else cb.parentElement.classList.remove('checked');
+        
+        const checkedCount = document.querySelectorAll('.cb-label input:checked').length;
+        const startBtn = document.getElementById('btn-start-quiz');
+        if (checkedCount > 0) {
+            startBtn.removeAttribute('disabled');
+            startBtn.innerText = `开启专项测验`;
+        } else {
+            startBtn.setAttribute('disabled', 'true');
+            startBtn.innerText = `请至少选择一个组合`;
+        }
+    }
+
+    function selectGroup(type) {
+        document.querySelectorAll('.cb-label input').forEach(cb => {
+            const isVoiced = cb.value.includes('浊') || cb.value.includes('半');
+            if (type === 'all') cb.checked = true;
+            else if (type === 'clear') cb.checked = false;
+            else if (type === 'clearVoiced') cb.checked = !isVoiced;
+            else if (type === 'onlyVoiced') cb.checked = isVoiced;
+            
+            handleCheckboxChange(cb);
+        });
+    }
+
+    function initTest() {
+        let selectedRows = [];
+        document.querySelectorAll('.cb-label input:checked').forEach(cb => {
+            selectedRows.push(cb.value);
+        });
+
+        let rawPool = [];
+        selectedRows.forEach(row => {
+            rawPool.push(...KANA_ROWS[row]);
+        });
+
+        let pool = [];
+        rawPool.forEach(d => {
+            const info = `${d.h}/${d.k} (${d.r})`;
+            pool.push({ q: d.h, a: d.r, info: info, hint: '请选择正确的平假名读音' });
+            pool.push({ q: d.k, a: d.r, info: info, hint: '请选择正确的片假名读音' });
+        });
+
+        quiz = pool.sort(() => Math.random() - 0.5);
+        totalTasks = quiz.length;
+        cur = 0; history = [];
+        
+        show('sc-quiz');
+        render();
+    }
+
+    function startReinforceTest() {
+        quiz = reinforcePool.sort(() => Math.random() - 0.5);
+        totalTasks = quiz.length;
+        cur = 0; history = [];
+        show('sc-quiz');
+        render();
+    }
+
+    function render() {
+        if (cur >= totalTasks) return finish();
+        const q = quiz[cur];
+        locked = false;
+
+        document.getElementById('prog-num').innerText = `${cur + 1} / ${totalTasks}`;
+        document.getElementById('progress-fill').style.width = `${(cur / totalTasks) * 100}%`;
+        document.getElementById('q-text').innerText = q.q;
+        document.getElementById('q-type-hint').innerText = q.hint;
+
+        const container = document.getElementById('opt-container');
+        container.innerHTML = '';
+
+        let finalOpts = [q.a];
+        let distractors = globalOptionPool.filter(o => o !== q.a);
+        distractors.sort(() => Math.random() - 0.5);
+        finalOpts.push(...distractors.slice(0, 3));
+        finalOpts.sort(() => Math.random() - 0.5);
+
+        finalOpts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-opt';
+            btn.innerText = opt;
+            btn.onclick = () => check(opt, q.a, btn, q);
+            container.appendChild(btn);
+        });
+
+        qStart = performance.now();
+    }
+
+    function check(val, ans, btn, qObj) {
+        if (!locked) {
+            const time = (performance.now() - qStart) / 1000;
+            history.push({ qObj: qObj, time: time, ok: val === ans });
+            locked = true;
+        }
+
+        if (val === ans) {
+            btn.classList.add('correct');
+            document.querySelectorAll('.btn-opt').forEach(b => b.disabled = true);
+            setTimeout(() => { cur++; render(); }, 250);
+        } else {
+            btn.classList.add('wrong');
+        }
+    }
+
+    function finish() {
+        show('sc-result');
+        const avg = history.reduce((s, x) => s + x.time, 0) / history.length;
+        const acc = (history.filter(x => x.ok).length / history.length) * 100;
+
+        document.getElementById('res-time').innerText = avg.toFixed(2) + 's';
+        document.getElementById('res-acc').innerText = acc.toFixed(0) + '%';
+
+        const r = RANKS.find(x => avg <= x.max);
+        const banner = document.getElementById('res-rank');
+        banner.innerText = r.name;
+        banner.style.backgroundColor = r.color;
+
+        const errItems = history.filter(x => !x.ok);
+        const slowItems = history.filter(x => x.ok && x.time > 3);
+
+        const errTexts = [...new Set(errItems.map(x => x.qObj.info))];
+        const slowTexts = [...new Set(slowItems.map(x => x.qObj.info))];
+
+        const eBox = document.getElementById('log-err-box'), eList = document.getElementById('list-err');
+        const sBox = document.getElementById('log-slow-box'), sList = document.getElementById('list-slow');
+
+        if (errTexts.length > 0) {
+            eBox.style.display = 'block';
+            eList.innerHTML = errTexts.map(t => `<span class="tag" style="color:#B91C1C">${t}</span>`).join('');
+        } else eBox.style.display = 'none';
+
+        if (slowTexts.length > 0) {
+            sBox.style.display = 'block';
+            sList.innerHTML = slowTexts.map(t => `<span class="tag" style="color:#B45309">${t}</span>`).join('');
+        } else {
+            sList.innerHTML = '<div style="font-size:12px; color:#94A3B8;">极速反射！当前所选专项中没有卡顿和错误。</div>';
+        }
+
+        const rawReinforce = [...errItems.map(x => x.qObj), ...slowItems.map(x => x.qObj)];
+        reinforcePool = Array.from(new Map(rawReinforce.map(item => [item.info, item])).values());
+
+        const btnReinforce = document.getElementById('btn-reinforce');
+        if (reinforcePool.length > 0) {
+            btnReinforce.style.display = 'block';
+            btnReinforce.innerText = `🚀 立即针对强化 (${reinforcePool.length}项)`;
+        } else {
+            btnReinforce.style.display = 'none';
+        }
+    }
+
+    function backToHome() {
+        show('sc-start');
+    }
+
+    function show(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+</script>
+</body>
+</html>
