@@ -62,23 +62,26 @@
         .progress-bar { width: 100%; height: 6px; background: #E2E8F0; border-radius: 3px; margin-bottom: 25px; overflow: hidden; }
         #progress-fill { width: 0%; height: 100%; background: var(--accent); transition: width 0.3s; }
 
-        /* 【核心修改区域】优化题目卡片，拉开与选项的物理距离 */
         .q-card {
-            background: #F1F5F9; 
-            border-radius: 15px; 
-            padding: 80px 10px; /* 增加上下留白，孤立视觉焦点 */
-            margin-bottom: 15vh; /* 大幅增加底部外边距，强制眼球移动，阻断“周边视觉辨析” */
-            text-align: center; 
-            border: 1px solid var(--border);
+            background: #F1F5F9; border-radius: 15px; padding: 80px 10px; 
+            margin-bottom: 15vh; text-align: center; border: 1px solid var(--border);
         }
         #q-text { font-size: 95px; font-weight: bold; color: var(--primary); line-height: 1; }
         .q-hint { font-size: 13px; color: #94A3B8; margin-top: 15px; font-weight: 500; }
 
         .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
         button { cursor: pointer; border: none; border-radius: 12px; font-family: inherit; transition: all 0.2s; font-weight: 600; }
+        
         .btn-main { background: var(--accent); color: white; padding: 16px; width: 100%; font-size: 18px; margin-top: 10px; border-radius: 12px; }
         .btn-main:hover { filter: brightness(0.9); }
         .btn-main:disabled { background: #CBD5E1; cursor: not-allowed; }
+        
+        /* 强化按钮特殊样式 */
+        .btn-reinforce { background: var(--slow); margin-bottom: 10px; }
+        .btn-reinforce:hover { background: #D97706; }
+        .btn-back { background: #E2E8F0; color: var(--primary); }
+        .btn-back:hover { background: #CBD5E1; }
+
         .btn-opt { background: #FFFFFF; padding: 20px 10px; font-size: 24px; border: 2px solid var(--border); color: var(--primary); }
         .btn-opt:hover:not(:disabled) { border-color: var(--accent); background: #EFF6FF; }
         .btn-opt.correct { background: var(--correct) !important; color: white; border-color: var(--correct); }
@@ -148,7 +151,7 @@
         </div>
 
         <div id="log-err-box" class="log-box" style="background:#FEF2F2; border-color:#FEE2E2; display:none;">
-            <div class="log-title" style="color:#B91C1C;">❌ 识别错误项 (建立卡片)：</div>
+            <div class="log-title" style="color:#B91C1C;">❌ 识别错误项：</div>
             <div id="list-err" class="tag-list"></div>
         </div>
 
@@ -157,12 +160,14 @@
             <div id="list-slow" class="tag-list"></div>
         </div>
 
-        <button class="btn-main" onclick="backToHome()">返回自选首页</button>
+        <button id="btn-reinforce" class="btn-main btn-reinforce" onclick="startReinforceTest()" style="display:none;">
+            🚀 立即强化训练
+        </button>
+        <button class="btn-main btn-back" onclick="backToHome()">返回自选首页</button>
     </div>
 </div>
 
 <script>
-    // 纯净无误的数据集
     const KANA_ROWS = {
         'A行': [{r:'a', h:'あ', k:'ア'}, {r:'i', h:'い', k:'イ'}, {r:'u', h:'う', k:'ウ'}, {r:'e', h:'え', k:'エ'}, {r:'o', h:'お', k:'オ'}],
         'K行': [{r:'ka', h:'か', k:'カ'}, {r:'ki', h:'き', k:'キ'}, {r:'ku', h:'く', k:'ク'}, {r:'ke', h:'け', k:'ケ'}, {r:'ko', h:'こ', k:'コ'}],
@@ -191,8 +196,17 @@
 
     let quiz = [], cur = 0, history = [];
     let qStart = 0, locked = false, totalTasks = 0;
+    
+    // 全局选项池，用于生成干扰项
+    let globalOptionPool = [];
+    // 强化测试池
+    let reinforcePool = [];
 
     window.onload = function() {
+        // 构建干扰项总池
+        Object.keys(KANA_ROWS).forEach(r => globalOptionPool.push(...KANA_ROWS[r].map(x => x.r)));
+        globalOptionPool = [...new Set(globalOptionPool)];
+
         const clearContainer = document.getElementById('grid-clear');
         const voicedContainer = document.getElementById('grid-voiced');
 
@@ -260,6 +274,18 @@
         render();
     }
 
+    // 启动强化测试（只测错题和慢题）
+    function startReinforceTest() {
+        // 打乱强化池
+        quiz = reinforcePool.sort(() => Math.random() - 0.5);
+        totalTasks = quiz.length;
+        cur = 0; 
+        history = [];
+        
+        show('sc-quiz');
+        render();
+    }
+
     function render() {
         if (cur >= totalTasks) return finish();
         const q = quiz[cur];
@@ -273,12 +299,8 @@
         const container = document.getElementById('opt-container');
         container.innerHTML = '';
 
-        let allOptions = [];
-        Object.keys(KANA_ROWS).forEach(r => allOptions.push(...KANA_ROWS[r].map(x => x.r)));
-        let optionPool = [...new Set(allOptions)];
-
         let finalOpts = [q.a];
-        let distractors = optionPool.filter(o => o !== q.a);
+        let distractors = globalOptionPool.filter(o => o !== q.a);
         distractors.sort(() => Math.random() - 0.5);
         finalOpts.push(...distractors.slice(0, 3));
         finalOpts.sort(() => Math.random() - 0.5);
@@ -287,17 +309,19 @@
             const btn = document.createElement('button');
             btn.className = 'btn-opt';
             btn.innerText = opt;
-            btn.onclick = () => check(opt, q.a, btn, q.info);
+            // 记录下完整的题目对象 q 以备复测提取
+            btn.onclick = () => check(opt, q.a, btn, q);
             container.appendChild(btn);
         });
 
         qStart = performance.now();
     }
 
-    function check(val, ans, btn, info) {
+    function check(val, ans, btn, qObj) {
         if (!locked) {
             const time = (performance.now() - qStart) / 1000;
-            history.push({ info: info, time: time, ok: val === ans });
+            // 保存完整的 qObj 而不只是文本
+            history.push({ qObj: qObj, time: time, ok: val === ans });
             locked = true;
         }
 
@@ -323,22 +347,39 @@
         banner.innerText = r.name;
         banner.style.backgroundColor = r.color;
 
-        const errs = [...new Set(history.filter(x => !x.ok).map(x => x.info))];
-        const slows = [...new Set(history.filter(x => x.ok && x.time > 3).map(x => x.info))];
+        // 提取错题和慢题
+        const errItems = history.filter(x => !x.ok);
+        const slowItems = history.filter(x => x.ok && x.time > 3);
+
+        const errTexts = [...new Set(errItems.map(x => x.qObj.info))];
+        const slowTexts = [...new Set(slowItems.map(x => x.qObj.info))];
 
         const eBox = document.getElementById('log-err-box'), eList = document.getElementById('list-err');
         const sBox = document.getElementById('log-slow-box'), sList = document.getElementById('list-slow');
 
-        if (errs.length > 0) {
+        if (errTexts.length > 0) {
             eBox.style.display = 'block';
-            eList.innerHTML = errs.map(t => `<span class="tag" style="color:#B91C1C">${t}</span>`).join('');
+            eList.innerHTML = errTexts.map(t => `<span class="tag" style="color:#B91C1C">${t}</span>`).join('');
         } else eBox.style.display = 'none';
 
-        if (slows.length > 0) {
+        if (slowTexts.length > 0) {
             sBox.style.display = 'block';
-            sList.innerHTML = slows.map(t => `<span class="tag" style="color:#B45309">${t}</span>`).join('');
+            sList.innerHTML = slowTexts.map(t => `<span class="tag" style="color:#B45309">${t}</span>`).join('');
         } else {
             sList.innerHTML = '<div style="font-size:12px; color:#94A3B8;">优秀！当前所选专项中无任何迟缓项。</div>';
+        }
+
+        // 构建强化测试池：合并错题与慢题，并按 info 去重
+        const rawReinforce = [...errItems.map(x => x.qObj), ...slowItems.map(x => x.qObj)];
+        reinforcePool = Array.from(new Map(rawReinforce.map(item => [item.info, item])).values());
+
+        // 如果存在需要强化的题目，则显示“强化按钮”
+        const btnReinforce = document.getElementById('btn-reinforce');
+        if (reinforcePool.length > 0) {
+            btnReinforce.style.display = 'block';
+            btnReinforce.innerText = `🚀 立即强化训练 (${reinforcePool.length}项)`;
+        } else {
+            btnReinforce.style.display = 'none';
         }
     }
 
