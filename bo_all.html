@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五十音「复合拨音」专项记忆测验</title>
+    <style>
+        :root {
+            --primary: #1E293B;
+            --accent: #0D9488; /* 拨音复合版采用深青色调 */
+            --bg: #F8FAFC;
+            --card: #FFFFFF;
+            --text: #0F172A;
+            --correct: #10B981;
+            --wrong: #EF4444;
+            --slow: #F59E0B;
+            --border: #E2E8F0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 20px;
+        }
+
+        .container {
+            background: var(--card);
+            width: 100%; max-width: 580px; /* 稍微加宽以适应复合假名 */
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            padding: 30px; position: relative;
+            border-top: 6px solid var(--accent);
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        h1 { font-size: 24px; text-align: center; margin-bottom: 8px; color: var(--primary); }
+        .subtitle { text-align: center; color: #64748B; font-size: 14px; margin-bottom: 25px; line-height: 1.5; }
+
+        .section-title { font-size: 14px; font-weight: 800; color: #64748B; margin: 15px 0 8px 0; text-transform: uppercase; letter-spacing: 0.5px; }
+        .checkbox-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 10px; margin-bottom: 15px; }
+        .cb-label {
+            display: flex; align-items: center; justify-content: center;
+            background: #F1F5F9; border: 2px solid #E2E8F0; padding: 10px;
+            border-radius: 10px; cursor: pointer; font-size: 13px; font-weight: 600;
+            user-select: none; transition: all 0.2s; text-align: center;
+        }
+        .cb-label input { display: none; }
+        .cb-label:hover { border-color: #CBD5E1; }
+        .cb-label.checked { background: #F0FDFA; border-color: var(--accent); color: var(--accent); }
+
+        .ctrl-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        .btn-sub { background: #E2E8F0; color: var(--primary); padding: 8px 12px; font-size: 12px; border-radius: 6px; font-weight: bold; }
+        .btn-sub:hover { background: #CBD5E1; }
+
+        .meta { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; font-weight: bold; color: var(--accent); }
+        .progress-bar { width: 100%; height: 6px; background: #E2E8F0; border-radius: 3px; margin-bottom: 25px; overflow: hidden; }
+        #progress-fill { width: 0%; height: 100%; background: var(--accent); transition: width 0.3s; }
+
+        /* 防作弊与防偷懒的空间隔离 */
+        .q-card {
+            background: #F1F5F9; border-radius: 15px; padding: 70px 10px; 
+            margin-bottom: 15vh; /* 强制眼球位移 */
+            text-align: center; border: 1px solid var(--border);
+        }
+        #q-text { font-size: 80px; font-weight: bold; color: var(--primary); line-height: 1; letter-spacing: 2px; }
+        .q-hint { font-size: 13px; color: #94A3B8; margin-top: 15px; font-weight: 500; }
+
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        button { cursor: pointer; border: none; border-radius: 12px; font-family: inherit; transition: all 0.2s; font-weight: 600; }
+        
+        .btn-main { background: var(--accent); color: white; padding: 16px; width: 100%; font-size: 18px; margin-top: 10px; border-radius: 12px; }
+        .btn-main:hover { filter: brightness(0.9); }
+        .btn-main:disabled { background: #CBD5E1; cursor: not-allowed; }
+        
+        .btn-reinforce { background: var(--slow); margin-bottom: 10px; }
+        .btn-reinforce:hover { background: #D97706; }
+        .btn-back { background: #E2E8F0; color: var(--primary); }
+        .btn-back:hover { background: #CBD5E1; }
+
+        .btn-opt { background: #FFFFFF; padding: 20px 10px; font-size: 22px; border: 2px solid var(--border); color: var(--primary); letter-spacing: 1px; }
+        .btn-opt:hover:not(:disabled) { border-color: var(--accent); background: #F0FDFA; }
+        .btn-opt.correct { background: var(--correct) !important; color: white; border-color: var(--correct); }
+        .btn-opt.wrong { background: var(--wrong) !important; color: white; border-color: var(--wrong); animation: shake 0.4s; }
+
+        .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+        .stat-item { background: #F8FAFC; padding: 15px; border-radius: 10px; text-align: center; border: 1px solid var(--border); }
+        .stat-label { font-size: 11px; color: #64748B; display: block; text-transform: uppercase; margin-bottom: 4px; }
+        .stat-val { font-size: 20px; font-weight: 800; color: var(--primary); }
+
+        .rank-badge { padding: 15px; border-radius: 10px; margin-bottom: 20px; text-align: center; font-weight: bold; color: white; }
+        .log-box { text-align: left; padding: 15px; border-radius: 10px; margin-bottom: 15px; border: 1px solid transparent; max-height: 200px; overflow-y: auto; }
+        .log-title { font-size: 13px; font-weight: 800; margin-bottom: 10px; }
+        .tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .tag { padding: 4px 10px; border-radius: 6px; font-size: 14px; font-weight: bold; background: white; border: 1.5px solid currentColor; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 开始屏 -->
+    <div id="sc-start" class="screen active">
+        <h1>五十音复合拨音 (ん/ン) 专项</h1>
+        <p class="subtitle">将“音节+鼻音”作为单一视觉模块处理，切断脑海中的拆分拼读过程，直接形成条件反射。</p>
+        
+        <div class="ctrl-btns">
+            <button class="btn-sub" onclick="selectGroup('all')">全选所有组合</button>
+            <button class="btn-sub" onclick="selectGroup('clearAll')">清空重选</button>
+            <button class="btn-sub" onclick="selectGroup('onlyBasic')">仅基础音+n</button>
+            <button class="btn-sub" onclick="selectGroup('onlyComplex')">仅浊/半浊/拗音+n</button>
+        </div>
+
+        <div class="section-title">基础音 + 拨音</div>
+        <div class="checkbox-grid" id="grid-basic"></div>
+
+        <div class="section-title">浊音/半浊音 + 拨音</div>
+        <div class="checkbox-grid" id="grid-voiced"></div>
+
+        <div class="section-title">拗音 + 拨音</div>
+        <div class="checkbox-grid" id="grid-yoon"></div>
+
+        <button class="btn-main" id="btn-start-quiz" onclick="initTest()" disabled>请至少选择一个组合</button>
+    </div>
+
+    <!-- 测验屏 -->
+    <div id="sc-quiz" class="screen">
+        <div class="meta">
+            <span id="prog-num">0 / 0</span>
+            <span id="timer">0.0s</span>
+        </div>
+        <div class="progress-bar"><div id="progress-fill"></div></div>
+        <div class="q-card">
+            <span id="q-text">-</span>
+            <div id="q-type-hint" class="q-hint">请选择正确的整体罗马音</div>
+        </div>
+        <div class="options-grid" id="opt-container"></div>
+    </div>
+
+    <!-- 结果屏 -->
+    <div id="sc-result" class="screen">
+        <h1>闭环强化分析报告</h1>
+        <div id="res-rank" class="rank-badge">-</div>
+
+        <div class="stat-grid">
+            <div class="stat-item"><span class="stat-label">平均反应</span><span id="res-time" class="stat-val">0s</span></div>
+            <div class="stat-item"><span class="stat-label">准确率</span><span id="res-acc" class="stat-val">0%</span></div>
+        </div>
+
+        <div id="log-err-box" class="log-box" style="background:#FEF2F2; border-color:#FEE2E2; display:none;">
+            <div class="log-title" style="color:#B91C1C;">❌ 识别错误项 (需重新建构)：</div>
+            <div id="list-err" class="tag-list"></div>
+        </div>
+
+        <div id="log-slow-box" class="log-box" style="background:#FFFBEB; border-color:#FEF3C7;">
+            <div class="log-title" style="color:#B45309;">⏳ 反应迟缓项 (>3s 检索过慢)：</div>
+            <div id="list-slow" class="tag-list"></div>
+        </div>
+
+        <button id="btn-reinforce" class="btn-main btn-reinforce" onclick="startReinforceTest()" style="display:none;">
+            🚀 立即强化薄弱项
+        </button>
+        <button class="btn-main btn-back" onclick="backToHome()">返回自选首页</button>
+    </div>
+</div>
+
+<script>
+    // 完备的“假名+拨音”数据矩阵
+    const KANA_ROWS = {
+        // 基础音+拨音 (Basic)
+        'A行+n': [{r:'an',h:'あん',k:'アン'},{r:'in',h:'いん',k:'イン'},{r:'un',h:'うん',k:'ウン'},{r:'en',h:'えん',k:'エン'},{r:'on',h:'おん',k:'オン'}],
+        'K行+n': [{r:'kan',h:'かん',k:'カン'},{r:'kin',h:'きん',k:'キン'},{r:'kun',h:'くん',k:'クン'},{r:'ken',h:'けん',k:'ケン'},{r:'kon',h:'こん',k:'コン'}],
+        'S行+n': [{r:'san',h:'さん',k:'サン'},{r:'shin',h:'しん',k:'シン'},{r:'sun',h:'すん',k:'スン'},{r:'sen',h:'せん',k:'セン'},{r:'son',h:'そん',k:'ソン'}],
+        'T行+n': [{r:'tan',h:'たん',k:'タン'},{r:'chin',h:'ちん',k:'チン'},{r:'tsun',h:'つん',k:'ツン'},{r:'ten',h:'てん',k:'テン'},{r:'ton',h:'とん',k:'トン'}],
+        'N行+n': [{r:'nan',h:'なん',k:'ナン'},{r:'nin',h:'にん',k:'ニン'},{r:'nun',h:'ぬん',k:'ヌン'},{r:'nen',h:'ねん',k:'ネン'},{r:'non',h:'のん',k:'ノン'}],
+        'H行+n': [{r:'han',h:'はん',k:'ハン'},{r:'hin',h:'ひん',k:'ヒン'},{r:'fun',h:'ふん',k:'フン'},{r:'hen',h:'へん',k:'ヘン'},{r:'hon',h:'ほん',k:'ホン'}],
+        'M行+n': [{r:'man',h:'まん',k:'マン'},{r:'min',h:'みん',k:'ミン'},{r:'mun',h:'むん',k:'ムン'},{r:'men',h:'めん',k:'メン'},{r:'mon',h:'もん',k:'モン'}],
+        'Y/R/W+n': [
+            {r:'yan',h:'やん',k:'ヤン'},{r:'yun',h:'ゆん',k:'ユン'},{r:'yon',h:'よん',k:'ヨン'}, 
+            {r:'ran',h:'らん',k:'ラン'},{r:'rin',h:'りん',k:'リン'},{r:'run',h:'るん',k:'ルン'},{r:'ren',h:'れん',k:'レン'},{r:'ron',h:'ろん',k:'ロン'}, 
+            {r:'wan',h:'わん',k:'ワン'}
+        ],
+
+        // 浊/半浊音+拨音 (Voiced)
+        'G行(浊)+n': [{r:'gan',h:'がん',k:'ガン'},{r:'gin',h:'ぎん',k:'ギン'},{r:'gun',h:'ぐん',k:'グン'},{r:'gen',h:'げん',k:'ゲン'},{r:'gon',h:'ごん',k:'ゴン'}],
+        'Z行(浊)+n': [{r:'zan',h:'ざん',k:'ザン'},{r:'jin',h:'じん',k:'ジン'},{r:'zun',h:'ずん',k:'ズン'},{r:'zen',h:'ぜん',k:'ゼン'},{r:'zon',h:'ぞん',k:'ゾン'}],
+        'D行(浊)+n': [{r:'dan',h:'だん',k:'ダン'},{r:'jin(d)',h:'ぢん',k:'ヂン'},{r:'zun(d)',h:'づん',k:'ヅン'},{r:'den',h:'でん',k:'デン'},{r:'don',h:'どん',k:'ドン'}],
+        'B行(浊)+n': [{r:'ban',h:'ばん',k:'バン'},{r:'bin',h:'びん',k:'ビン'},{r:'bun',h:'ぶん',k:'ブン'},{r:'ben',h:'べん',k:'ベン'},{r:'bon',h:'ぼん',k:'ボン'}],
+        'P行(半)+n': [{r:'pan',h:'ぱん',k:'パン'},{r:'pin',h:'ぴん',k:'ピン'},{r:'pun',h:'ぷん',k:'プン'},{r:'pen',h:'ぺん',k:'ペン'},{r:'pon',h:'ぽん',k:'ポン'}],
+
+        // 拗音+拨音 (Yoon)
+        'K/S/T/N拗+n': [
+            {r:'kyan',h:'きゃん',k:'キャン'},{r:'kyun',h:'きゅん',k:'キュン'},{r:'kyon',h:'きょん',k:'キョン'},
+            {r:'shan',h:'しゃん',k:'シャン'},{r:'shun',h:'しゅん',k:'シュン'},{r:'shon',h:'しょん',k:'ション'},
+            {r:'chan',h:'ちゃん',k:'チャン'},{r:'chun',h:'ちゅん',k:'チュン'},{r:'chon',h:'ちょん',k:'チョン'},
+            {r:'nyan',h:'にゃん',k:'ニャン'},{r:'nyun',h:'にゅん',k:'ニュン'},{r:'nyon',h:'にょん',k:'ニョン'}
+        ],
+        'H/M/R拗+n': [
+            {r:'hyan',h:'ひゃん',k:'ヒャン'},{r:'hyun',h:'ひゅん',k:'ヒュン'},{r:'hyon',h:'ひょん',k:'ヒョン'},
+            {r:'myan',h:'みゃん',k:'ミャン'},{r:'myun',h:'みゅん',k:'ミュン'},{r:'myon',h:'みょん',k:'ミョン'},
+            {r:'ryan',h:'りゃん',k:'リャン'},{r:'ryun',h:'りゅん',k:'リュン'},{r:'ryon',h:'りょん',k:'リョン'}
+        ],
+        '浊/半浊拗+n': [
+            {r:'gyan',h:'ぎゃん',k:'ギャン'},{r:'gyun',h:'ぎゅん',k:'ギュン'},{r:'gyon',h:'ぎょん',k:'ギョン'},
+            {r:'jan',h:'じゃん',k:'ジャン'},{r:'jun',h:'じゅん',k:'ジュン'},{r:'jon',h:'じょん',k:'ジョン'},
+            {r:'byan',h:'びゃん',k:'ビャン'},{r:'byun',h:'びゅん',k:'ビュン'},{r:'byon',h:'びょん',k:'ビョン'},
+            {r:'pyan',h:'ぴゃん',k:'ピャン'},{r:'pyun',h:'ぴゅん',k:'ピュン'},{r:'pyon',h:'ぴょん',k:'ピョン'}
+        ]
+    };
+
+    const RANKS = [
+        {max: 0.9, name: "视觉本能直读 (Instant Reflex)", color: "#10B981"},
+        {max: 1.8, name: "模块化识别级 (Fluent)", color: "#0D9488"},
+        {max: 3.0, name: "微卡顿拼读级 (Competent)", color: "#F59E0B"},
+        {max: 5.0, name: "滞后逻辑推导 (Thinking)", color: "#E67E22"},
+        {max: Infinity, name: "急需强化重构 (Struggling)", color: "#EF4444"}
+    ];
+
+    let quiz = [], cur = 0, history = [];
+    let qStart = 0, locked = false, totalTasks = 0;
+    
+    let globalOptionPool = [];
+    let reinforcePool = [];
+
+    window.onload = function() {
+        Object.keys(KANA_ROWS).forEach(r => globalOptionPool.push(...KANA_ROWS[r].map(x => x.r)));
+        globalOptionPool = [...new Set(globalOptionPool)];
+
+        const basicContainer = document.getElementById('grid-basic');
+        const voicedContainer = document.getElementById('grid-voiced');
+        const yoonContainer = document.getElementById('grid-yoon');
+
+        Object.keys(KANA_ROWS).forEach(rowName => {
+            const isYoon = rowName.includes('拗');
+            const isVoiced = rowName.includes('浊') || rowName.includes('半');
+            
+            const label = document.createElement('label');
+            label.className = 'cb-label';
+            label.innerHTML = `<input type="checkbox" value="${rowName}" onchange="handleCheckboxChange(this)"> ${rowName.replace('+n','')}`;
+            
+            if (isYoon) {
+                yoonContainer.appendChild(label);
+            } else if (isVoiced) {
+                voicedContainer.appendChild(label);
+            } else {
+                basicContainer.appendChild(label);
+            }
+        });
+    }
+
+    function handleCheckboxChange(cb) {
+        if (cb.checked) cb.parentElement.classList.add('checked');
+        else cb.parentElement.classList.remove('checked');
+        
+        const checkedCount = document.querySelectorAll('.cb-label input:checked').length;
+        const startBtn = document.getElementById('btn-start-quiz');
+        if (checkedCount > 0) {
+            startBtn.removeAttribute('disabled');
+            startBtn.innerText = `开启专项测验`;
+        } else {
+            startBtn.setAttribute('disabled', 'true');
+            startBtn.innerText = `请至少选择一个组合`;
+        }
+    }
+
+    function selectGroup(type) {
+        document.querySelectorAll('.cb-label input').forEach(cb => {
+            const isYoon = cb.value.includes('拗');
+            const isVoiced = cb.value.includes('浊') || cb.value.includes('半');
+            const isComplex = isYoon || isVoiced;
+
+            if (type === 'all') cb.checked = true;
+            else if (type === 'clearAll') cb.checked = false;
+            else if (type === 'onlyBasic') cb.checked = !isComplex;
+            else if (type === 'onlyComplex') cb.checked = isComplex;
+            
+            handleCheckboxChange(cb);
+        });
+    }
+
+    function initTest() {
+        let selectedRows = [];
+        document.querySelectorAll('.cb-label input:checked').forEach(cb => {
+            selectedRows.push(cb.value);
+        });
+
+        let rawPool = [];
+        selectedRows.forEach(row => {
+            rawPool.push(...KANA_ROWS[row]);
+        });
+
+        let pool = [];
+        rawPool.forEach(d => {
+            const info = `${d.h}/${d.k} (${d.r})`;
+            pool.push({ q: d.h, a: d.r, info: info, hint: '请选择对应的整体发音（平假名+拨音）' });
+            pool.push({ q: d.k, a: d.r, info: info, hint: '请选择对应的整体发音（片假名+拨音）' });
+        });
+
+        quiz = pool.sort(() => Math.random() - 0.5);
+        totalTasks = quiz.length;
+        cur = 0; history = [];
+        
+        show('sc-quiz');
+        render();
+    }
+
+    function startReinforceTest() {
+        quiz = reinforcePool.sort(() => Math.random() - 0.5);
+        totalTasks = quiz.length;
+        cur = 0; history = [];
+        show('sc-quiz');
+        render();
+    }
+
+    function render() {
+        if (cur >= totalTasks) return finish();
+        const q = quiz[cur];
+        locked = false;
+
+        document.getElementById('prog-num').innerText = `${cur + 1} / ${totalTasks}`;
+        document.getElementById('progress-fill').style.width = `${(cur / totalTasks) * 100}%`;
+        document.getElementById('q-text').innerText = q.q;
+        document.getElementById('q-type-hint').innerText = q.hint;
+
+        const container = document.getElementById('opt-container');
+        container.innerHTML = '';
+
+        let finalOpts = [q.a];
+        let distractors = globalOptionPool.filter(o => o !== q.a);
+        distractors.sort(() => Math.random() - 0.5);
+        finalOpts.push(...distractors.slice(0, 3));
+        finalOpts.sort(() => Math.random() - 0.5);
+
+        finalOpts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-opt';
+            btn.innerText = opt;
+            btn.onclick = () => check(opt, q.a, btn, q);
+            container.appendChild(btn);
+        });
+
+        qStart = performance.now();
+    }
+
+    function check(val, ans, btn, qObj) {
+        if (!locked) {
+            const time = (performance.now() - qStart) / 1000;
+            history.push({ qObj: qObj, time: time, ok: val === ans });
+            locked = true;
+        }
+
+        if (val === ans) {
+            btn.classList.add('correct');
+            document.querySelectorAll('.btn-opt').forEach(b => b.disabled = true);
+            setTimeout(() => { cur++; render(); }, 250);
+        } else {
+            btn.classList.add('wrong');
+        }
+    }
+
+    function finish() {
+        show('sc-result');
+        const avg = history.reduce((s, x) => s + x.time, 0) / history.length;
+        const acc = (history.filter(x => x.ok).length / history.length) * 100;
+
+        document.getElementById('res-time').innerText = avg.toFixed(2) + 's';
+        document.getElementById('res-acc').innerText = acc.toFixed(0) + '%';
+
+        const r = RANKS.find(x => avg <= x.max);
+        const banner = document.getElementById('res-rank');
+        banner.innerText = r.name;
+        banner.style.backgroundColor = r.color;
+
+        const errItems = history.filter(x => !x.ok);
+        const slowItems = history.filter(x => x.ok && x.time > 3);
+
+        const errTexts = [...new Set(errItems.map(x => x.qObj.info))];
+        const slowTexts = [...new Set(slowItems.map(x => x.qObj.info))];
+
+        const eBox = document.getElementById('log-err-box'), eList = document.getElementById('list-err');
+        const sBox = document.getElementById('log-slow-box'), sList = document.getElementById('list-slow');
+
+        if (errTexts.length > 0) {
+            eBox.style.display = 'block';
+            eList.innerHTML = errTexts.map(t => `<span class="tag" style="color:#B91C1C">${t}</span>`).join('');
+        } else eBox.style.display = 'none';
+
+        if (slowTexts.length > 0) {
+            sBox.style.display = 'block';
+            sList.innerHTML = slowTexts.map(t => `<span class="tag" style="color:#B45309">${t}</span>`).join('');
+        } else {
+            sList.innerHTML = '<div style="font-size:13px; color:#94A3B8;">完美吸收！无任何需剥离的迟钝记忆链接。</div>';
+        }
+
+        const rawReinforce = [...errItems.map(x => x.qObj), ...slowItems.map(x => x.qObj)];
+        reinforcePool = Array.from(new Map(rawReinforce.map(item => [item.info, item])).values());
+
+        const btnReinforce = document.getElementById('btn-reinforce');
+        if (reinforcePool.length > 0) {
+            btnReinforce.style.display = 'block';
+            btnReinforce.innerText = `🚀 立即针对强化 (${reinforcePool.length}项)`;
+        } else {
+            btnReinforce.style.display = 'none';
+        }
+    }
+
+    function backToHome() {
+        show('sc-start');
+    }
+
+    function show(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+</script>
+</body>
+</html>
