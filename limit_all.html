@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五十音全栈自定义限时特训系统 - 行级精细版</title>
+    <style>
+        :root {
+            --primary: #0F172A;
+            --accent: #E11D48;
+            --bg: #F8FAFC;
+            --card: #FFFFFF;
+            --text: #1E293B;
+            --correct: #10B981;
+            --wrong: #EF4444;
+            --border: #E2E8F0;
+            --tag-bg: #F1F5F9;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 20px; user-select: none;
+        }
+
+        .container {
+            background: var(--card);
+            width: 100%; max-width: 620px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            padding: 25px; position: relative;
+            border-top: 6px solid var(--accent);
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        h1 { font-size: 22px; text-align: center; margin-bottom: 8px; color: var(--primary); }
+        .subtitle { text-align: center; color: #64748B; font-size: 13px; margin-bottom: 20px; line-height: 1.5; }
+
+        /* 配置区域 */
+        .config-box { background: #FFFFFF; border-radius: 12px; margin-bottom: 20px; border: 1px solid var(--border); overflow: hidden; }
+        .section-title { font-size: 13px; font-weight: 800; color: #475569; padding: 12px 15px; background: #F8FAFC; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .config-body { padding: 15px; }
+        
+        /* 分组池标签组 */
+        .pool-group { margin-bottom: 15px; }
+        .pool-group:last-child { margin-bottom: 0; }
+        .pool-title { font-size: 12px; font-weight: 700; color: #94A3B8; margin-bottom: 8px; letter-spacing: 1px; }
+        .tag-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+        
+        .row-tag {
+            background: var(--tag-bg); border: 2px solid transparent; padding: 8px 14px;
+            border-radius: 8px; cursor: pointer; font-size: 13px; font-weight: 600;
+            color: #475569; transition: all 0.2s;
+        }
+        .row-tag:hover { background: #E2E8F0; }
+        .row-tag.active { background: #FFF1F2; border-color: var(--accent); color: var(--accent); }
+        
+        .quick-select { font-size: 12px; color: var(--accent); cursor: pointer; font-weight: normal; }
+        .quick-select:hover { text-decoration: underline; }
+
+        .slider-label { display: flex; justify-content: space-between; font-weight: bold; margin-bottom: 10px; font-size: 13px; color: var(--primary); }
+        input[type=range] { width: 100%; margin-bottom: 15px; accent-color: var(--accent); cursor: pointer; }
+
+        .btn-main { background: var(--accent); color: white; padding: 16px; width: 100%; font-size: 16px; font-weight: bold; border-radius: 10px; border: none; cursor: pointer; transition: all 0.2s; }
+        .btn-main:hover { filter: brightness(0.9); transform: translateY(-1px); }
+        .btn-main:active { transform: translateY(1px); }
+        .btn-main:disabled { background: #CBD5E1; cursor: not-allowed; transform: none; }
+        .btn-stop { background: #E2E8F0; color: #475569; margin-top: 10px; padding: 12px; font-size: 14px; }
+        .btn-stop:hover { background: #CBD5E1; }
+
+        /* 测验界面 */
+        .header-stats { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .stat-badge { background: #F1F5F9; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 16px; font-variant-numeric: tabular-nums; border: 1px solid var(--border); }
+        .session-timer { color: var(--accent); background: #FFF1F2; border-color: #FECDD3; }
+        .phase-indicator { text-align: center; font-size: 13px; font-weight: bold; color: var(--accent); margin-bottom: 10px; }
+
+        .q-timer-bg { width: 100%; height: 6px; background: #E2E8F0; border-radius: 3px; margin-bottom: 20px; overflow: hidden; position: relative; }
+        #q-timer-fill { height: 100%; background: var(--accent); width: 100%; }
+
+        .q-card { background: #F8FAFC; border-radius: 12px; padding: 45px 10px; margin-bottom: 20px; text-align: center; border: 2px solid var(--border); }
+        #q-text { font-size: 70px; font-weight: 800; color: var(--primary); line-height: 1; }
+        
+        .options-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .btn-opt { background: #FFFFFF; padding: 20px 10px; font-size: 22px; font-weight: bold; border: 2px solid var(--border); border-radius: 10px; color: var(--primary); cursor: pointer; transition: all 0.1s; }
+        .btn-opt:hover:not(:disabled) { border-color: var(--accent); background: #FFF1F2; }
+        .btn-opt.correct { background: var(--correct) !important; color: white; border-color: var(--correct); }
+        .btn-opt.wrong { background: var(--wrong) !important; color: white; border-color: var(--wrong); animation: shake 0.3s; }
+
+        /* 结果界面 */
+        .log-box { padding: 15px; border-radius: 10px; margin-bottom: 15px; background: #F8FAFC; max-height: 250px; overflow-y: auto; border: 1px solid var(--border); }
+        .log-title { font-size: 14px; font-weight: 800; margin-bottom: 10px; color: var(--primary); }
+        .result-tag-list { display: flex; flex-wrap: wrap; gap: 8px; }
+        .rtag { padding: 6px 10px; border-radius: 6px; font-size: 13px; font-weight: bold; background: white; border: 1.5px solid var(--border); display: flex; justify-content: space-between; width: calc(50% - 4px); }
+        .rtag .w-num { color: var(--accent); }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 开始屏 -->
+    <div id="sc-start" class="screen active">
+        <h1>靶向隔离特训系统</h1>
+        <p class="subtitle">精确勾选行列，隔离变量，攻克最后几组易混淆顽固字符。</p>
+        
+        <div class="config-box">
+            <div class="section-title">
+                🎯 1. 分组池设定 (精确到行)
+                <span class="quick-select" onclick="toggleAllRows()">全选 / 全不选</span>
+            </div>
+            <div class="config-body">
+                <div class="pool-group">
+                    <div class="pool-title">清音组</div>
+                    <div class="tag-grid" id="grid-clear">
+                        <div class="row-tag active" data-row="a">あ行</div>
+                        <div class="row-tag active" data-row="ka">か行</div>
+                        <div class="row-tag active" data-row="sa">さ行</div>
+                        <div class="row-tag active" data-row="ta">た行</div>
+                        <div class="row-tag active" data-row="na">な行</div>
+                        <div class="row-tag active" data-row="ha">は行</div>
+                        <div class="row-tag active" data-row="ma">ま行</div>
+                        <div class="row-tag active" data-row="ya">や行</div>
+                        <div class="row-tag active" data-row="ra">ら行</div>
+                        <div class="row-tag active" data-row="wa">わ行</div>
+                    </div>
+                </div>
+                
+                <div class="pool-group">
+                    <div class="pool-title">浊音 / 半浊音组</div>
+                    <div class="tag-grid" id="grid-voiced">
+                        <div class="row-tag" data-row="ga">が行</div>
+                        <div class="row-tag" data-row="za">ざ行</div>
+                        <div class="row-tag" data-row="da">だ行</div>
+                        <div class="row-tag" data-row="ba">ば行</div>
+                        <div class="row-tag" data-row="pa">ぱ行</div>
+                    </div>
+                </div>
+
+                <div class="pool-group">
+                    <div class="pool-title">特殊 / 复合组</div>
+                    <div class="tag-grid" id="grid-special">
+                        <div class="row-tag" data-row="yoon_c">拗音(清)</div>
+                        <div class="row-tag" data-row="yoon_v">拗音(浊)</div>
+                        <div class="row-tag" data-row="n_comp">拨音(ん)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="config-box">
+            <div class="section-title">⚡ 2. 核心强度设定</div>
+            <div class="config-body">
+                <div class="slider-label">
+                    <span>单题极限反应时限</span>
+                    <span id="time-val">2.0 秒</span>
+                </div>
+                <input type="range" id="time-slider" min="0.5" max="3.0" step="0.1" value="2.0" oninput="updateSliders()">
+                
+                <div class="slider-label" style="margin-top:5px;">
+                    <span>⏱️ 总训练时长</span>
+                    <span id="duration-val">3 分钟</span>
+                </div>
+                <input type="range" id="duration-slider" min="1" max="15" step="1" value="3" oninput="updateSliders()">
+            </div>
+        </div>
+
+        <button class="btn-main" id="btn-start" onclick="startRoutine()">🚀 开启隔离特训</button>
+    </div>
+
+    <!-- 测验屏 -->
+    <div id="sc-quiz" class="screen">
+        <div class="phase-indicator">隔离沙盒高压特训中...</div>
+        <div class="header-stats">
+            <div class="stat-badge" id="counter-box">0 题</div>
+            <div class="stat-badge session-timer" id="session-timer">00:00</div>
+        </div>
+        
+        <div class="q-timer-bg"><div id="q-timer-fill"></div></div>
+
+        <div class="q-card"><span id="q-text">-</span></div>
+        <div class="options-grid" id="opt-container"></div>
+        <button class="btn-main btn-stop" onclick="abortSession()">🛑 提前终止记录</button>
+    </div>
+
+    <!-- 结果屏 -->
+    <div id="sc-result" class="screen">
+        <h1>诊断报告</h1>
+        <p class="subtitle">针对选定行的肌肉记忆重塑反馈 (已按权重排序)</p>
+
+        <div class="header-stats" style="margin-bottom: 15px;">
+            <div class="stat-badge">轰炸题数: <span id="res-total">0</span></div>
+            <div class="stat-badge">合格率: <span id="res-acc">0</span>%</div>
+        </div>
+
+        <div class="log-box">
+            <div class="log-title">🚨 亟待强化区域 (权重 > 1)</div>
+            <div id="list-weak" class="result-tag-list"></div>
+        </div>
+
+        <button class="btn-main" onclick="location.reload()">🔄 调整分组，重新挑战</button>
+    </div>
+</div>
+
+<script>
+    // --- 行级精细化数据矩阵 ---
+    const RAW_DATA = [
+        // 清音
+        {r:'a', h:'あ', k:'ア', row:'a'}, {r:'i', h:'い', k:'イ', row:'a'}, {r:'u', h:'う', k:'ウ', row:'a'}, {r:'e', h:'え', k:'エ', row:'a'}, {r:'o', h:'お', k:'オ', row:'a'},
+        {r:'ka', h:'か', k:'カ', row:'ka'}, {r:'ki', h:'き', k:'キ', row:'ka'}, {r:'ku', h:'く', k:'ク', row:'ka'}, {r:'ke', h:'け', k:'ケ', row:'ka'}, {r:'ko', h:'こ', k:'コ', row:'ka'},
+        {r:'sa', h:'さ', k:'サ', row:'sa'}, {r:'shi', h:'し', k:'シ', row:'sa'}, {r:'su', h:'す', k:'ス', row:'sa'}, {r:'se', h:'せ', k:'セ', row:'sa'}, {r:'so', h:'そ', k:'ソ', row:'sa'},
+        {r:'ta', h:'た', k:'タ', row:'ta'}, {r:'chi', h:'ち', k:'チ', row:'ta'}, {r:'tsu', h:'つ', k:'ツ', row:'ta'}, {r:'te', h:'て', k:'テ', row:'ta'}, {r:'to', h:'と', k:'ト', row:'ta'},
+        {r:'na', h:'な', k:'ナ', row:'na'}, {r:'ni', h:'に', k:'ニ', row:'na'}, {r:'nu', h:'ぬ', k:'ヌ', row:'na'}, {r:'ne', h:'ね', k:'ネ', row:'na'}, {r:'no', h:'の', k:'ノ', row:'na'},
+        {r:'ha', h:'は', k:'ハ', row:'ha'}, {r:'hi', h:'ひ', k:'ヒ', row:'ha'}, {r:'fu', h:'ふ', k:'フ', row:'ha'}, {r:'he', h:'へ', k:'ヘ', row:'ha'}, {r:'ho', h:'ほ', k:'ホ', row:'ha'},
+        {r:'ma', h:'ま', k:'マ', row:'ma'}, {r:'mi', h:'み', k:'ミ', row:'ma'}, {r:'mu', h:'む', k:'ム', row:'ma'}, {r:'me', h:'め', k:'メ', row:'ma'}, {r:'mo', h:'も', k:'モ', row:'ma'},
+        {r:'ya', h:'や', k:'ヤ', row:'ya'}, {r:'yu', h:'ゆ', k:'ユ', row:'ya'}, {r:'yo', h:'よ', k:'ヨ', row:'ya'},
+        {r:'ra', h:'ら', k:'ラ', row:'ra'}, {r:'ri', h:'り', k:'リ', row:'ra'}, {r:'ru', h:'る', k:'ル', row:'ra'}, {r:'re', h:'れ', k:'レ', row:'ra'}, {r:'ro', h:'ろ', k:'ロ', row:'ra'},
+        {r:'wa', h:'わ', k:'ワ', row:'wa'}, {r:'o(w)', h:'を', k:'ヲ', row:'wa'},
+        // 浊音/半浊音
+        {r:'ga', h:'が', k:'ガ', row:'ga'}, {r:'gi', h:'ぎ', k:'ギ', row:'ga'}, {r:'gu', h:'ぐ', k:'グ', row:'ga'}, {r:'ge', h:'げ', k:'ゲ', row:'ga'}, {r:'go', h:'ご', k:'ゴ', row:'ga'},
+        {r:'za', h:'ざ', k:'ザ', row:'za'}, {r:'ji', h:'じ', k:'ジ', row:'za'}, {r:'zu', h:'ず', k:'ズ', row:'za'}, {r:'ze', h:'ぜ', k:'ゼ', row:'za'}, {r:'zo', h:'ぞ', k:'ゾ', row:'za'},
+        {r:'da', h:'だ', k:'ダ', row:'da'}, {r:'ji(d)', h:'ぢ', k:'ヂ', row:'da'}, {r:'zu(d)', h:'づ', k:'ヅ', row:'da'}, {r:'de', h:'で', k:'デ', row:'da'}, {r:'do', h:'ど', k:'ド', row:'da'},
+        {r:'ba', h:'ば', k:'バ', row:'ba'}, {r:'bi', h:'び', k:'ビ', row:'ba'}, {r:'bu', h:'ぶ', k:'ブ', row:'ba'}, {r:'be', h:'べ', k:'ベ', row:'ba'}, {r:'bo', h:'ぼ', k:'ボ', row:'ba'},
+        {r:'pa', h:'ぱ', k:'パ', row:'pa'}, {r:'pi', h:'ぴ', k:'ピ', row:'pa'}, {r:'pu', h:'ぷ', k:'プ', row:'pa'}, {r:'pe', h:'ぺ', k:'ペ', row:'pa'}, {r:'po', h:'ぽ', k:'ポ', row:'pa'},
+        // 拗音 清
+        {r:'kya',h:'きゃ',k:'キャ', row:'yoon_c'}, {r:'kyu',h:'きゅ',k:'キュ', row:'yoon_c'}, {r:'kyo',h:'きょ',k:'キョ', row:'yoon_c'},
+        {r:'sha',h:'しゃ',k:'シャ', row:'yoon_c'}, {r:'shu',h:'しゅ',k:'シュ', row:'yoon_c'}, {r:'sho',h:'しょ',k:'ショ', row:'yoon_c'},
+        {r:'cha',h:'ちゃ',k:'チャ', row:'yoon_c'}, {r:'chu',h:'ちゅ',k:'チュ', row:'yoon_c'}, {r:'cho',h:'ちょ',k:'チョ', row:'yoon_c'},
+        {r:'nya',h:'にゃ',k:'ニャ', row:'yoon_c'}, {r:'nyu',h:'にゅ',k:'ニュ', row:'yoon_c'}, {r:'nyo',h:'にょ',k:'ニョ', row:'yoon_c'},
+        {r:'hya',h:'ひゃ',k:'ヒャ', row:'yoon_c'}, {r:'hyu',h:'ひゅ',k:'ヒュ', row:'yoon_c'}, {r:'hyo',h:'ひょ',k:'ヒョ', row:'yoon_c'},
+        {r:'mya',h:'みゃ',k:'ミャ', row:'yoon_c'}, {r:'myu',h:'みゅ',k:'ミュ', row:'yoon_c'}, {r:'myo',h:'みょ',k:'ミョ', row:'yoon_c'},
+        {r:'rya',h:'りゃ',k:'リャ', row:'yoon_c'}, {r:'ryu',h:'りゅ',k:'リュ', row:'yoon_c'}, {r:'ryo',h:'りょ',k:'リョ', row:'yoon_c'},
+        // 拗音 浊
+        {r:'gya',h:'ぎゃ',k:'ギャ', row:'yoon_v'}, {r:'gyu',h:'ぎゅ',k:'ギュ', row:'yoon_v'}, {r:'gyo',h:'ぎょ',k:'ギョ', row:'yoon_v'},
+        {r:'ja',h:'じゃ',k:'ジャ', row:'yoon_v'}, {r:'ju',h:'じゅ',k:'ジュ', row:'yoon_v'}, {r:'jo',h:'じょ',k:'ジョ', row:'yoon_v'},
+        {r:'bya',h:'びゃ',k:'ビャ', row:'yoon_v'}, {r:'byu',h:'びゅ',k:'ビュ', row:'yoon_v'}, {r:'byo',h:'びょ',k:'ビョ', row:'yoon_v'},
+        {r:'pya',h:'ぴゃ',k:'ピャ', row:'yoon_v'}, {r:'pyu',h:'ぴゅ',k:'ピュ', row:'yoon_v'}, {r:'pyo',h:'ぴょ',k:'ピョ', row:'yoon_v'},
+        // 复合拨音
+        {r:'kan',h:'かん',k:'カン', row:'n_comp'},{r:'shin',h:'しん',k:'シン', row:'n_comp'},{r:'chin',h:'ちん',k:'チン', row:'n_comp'},
+        {r:'nin',h:'にん',k:'ニン', row:'n_comp'},{r:'hon',h:'ほん',k:'ホン', row:'n_comp'},{r:'man',h:'まん',k:'マン', row:'n_comp'},
+        {r:'run',h:'るん',k:'ルン', row:'n_comp'},{r:'wan',h:'わん',k:'ワン', row:'n_comp'},{r:'gan',h:'がん',k:'ガン', row:'n_comp'},
+        {r:'jin',h:'じん',k:'ジン', row:'n_comp'},{r:'den',h:'でん',k:'デン', row:'n_comp'},{r:'ban',h:'ばん',k:'バン', row:'n_comp'},
+        {r:'pan',h:'ぱん',k:'パン', row:'n_comp'}
+    ];
+
+    let masterDB = []; 
+    let allRomajiSet = [];
+    let activePool = [];
+
+    // 初始化 MasterDB (展开平假名和片假名)
+    RAW_DATA.forEach(item => {
+        masterDB.push({ q: item.h, a: item.r, row: item.row, weight: 1, text: `${item.h} (${item.r})` });
+        masterDB.push({ q: item.k, a: item.r, row: item.row, weight: 1, text: `${item.k} (${item.r})` });
+        if(!allRomajiSet.includes(item.r)) allRomajiSet.push(item.r);
+    });
+
+    // 交互逻辑
+    document.querySelectorAll('.row-tag').forEach(tag => {
+        tag.addEventListener('click', function() {
+            this.classList.toggle('active');
+            checkStartBtn();
+        });
+    });
+
+    let allSelected = false;
+    function toggleAllRows() {
+        allSelected = !allSelected;
+        document.querySelectorAll('.row-tag').forEach(tag => {
+            if (allSelected) tag.classList.add('active');
+            else tag.classList.remove('active');
+        });
+        checkStartBtn();
+    }
+
+    function checkStartBtn() {
+        const count = document.querySelectorAll('.row-tag.active').length;
+        const btn = document.getElementById('btn-start');
+        if(count > 0) {
+            btn.removeAttribute('disabled');
+            btn.innerText = `🚀 开启隔离特训 (${count}组)`;
+        } else {
+            btn.setAttribute('disabled', 'true');
+            btn.innerText = `请至少勾选一组`;
+        }
+    }
+
+    // 核心状态
+    let timeLimitMs = 2000;
+    let sessionDurationMs = 3 * 60 * 1000;
+    let sessionEndTime = 0;
+    let sessionTimerInterval = null;
+    let questionTimerAnim = null;
+    let qStartTimestamp = 0;
+    let currentQ = null;
+    let isQuestionLocked = false;
+    let totalTested = 0;
+    let totalPerfect = 0;
+
+    function updateSliders() {
+        const tVal = document.getElementById('time-slider').value;
+        const dVal = document.getElementById('duration-slider').value;
+        document.getElementById('time-val').innerText = `${parseFloat(tVal).toFixed(1)} 秒`;
+        document.getElementById('duration-val').innerText = `${dVal} 分钟`;
+        timeLimitMs = parseFloat(tVal) * 1000;
+        sessionDurationMs = parseInt(dVal) * 60 * 1000;
+    }
+
+    function startRoutine() {
+        // 获取所有选中的行
+        let selectedRows = Array.from(document.querySelectorAll('.row-tag.active')).map(t => t.getAttribute('data-row'));
+        activePool = masterDB.filter(x => selectedRows.includes(x.row));
+        
+        totalTested = 0; totalPerfect = 0;
+        activePool.forEach(item => item.weight = 1); 
+        
+        show('sc-quiz');
+        sessionEndTime = Date.now() + sessionDurationMs;
+        runSessionTimer();
+        renderNextQuestion();
+    }
+
+    function runSessionTimer() {
+        clearInterval(sessionTimerInterval);
+        sessionTimerInterval = setInterval(() => {
+            const remain = Math.max(0, sessionEndTime - Date.now());
+            const mins = Math.floor(remain / 60000).toString().padStart(2, '0');
+            const secs = Math.floor((remain % 60000) / 1000).toString().padStart(2, '0');
+            document.getElementById('session-timer').innerText = `${mins}:${secs}`;
+            if (remain <= 0) { clearInterval(sessionTimerInterval); finishSession(); }
+        }, 200);
+    }
+
+    function getWeightedRandomQuestion() {
+        let totalWeight = activePool.reduce((sum, item) => sum + item.weight, 0);
+        let random = Math.random() * totalWeight;
+        for (let item of activePool) {
+            random -= item.weight;
+            if (random <= 0) return item;
+        }
+        return activePool[0];
+    }
+
+    // 重构的选项生成逻辑：绝对防错与补足机制
+    function generateOptions(correctAnswer) {
+        let options = [correctAnswer];
+        
+        // 优先从用户当前勾选的池子中提取不重复的Romaji
+        let localRomajiPool = [...new Set(activePool.map(x => x.a))];
+        let distractors = localRomajiPool.filter(a => a !== correctAnswer).sort(() => Math.random() - 0.5);
+        
+        // 如果勾选的行太少（例如只勾了"わ行"只有2个音），从全局库中随机抓取，补齐4个选项
+        if (distractors.length < 3) {
+            let globalDistractors = allRomajiSet.filter(a => a !== correctAnswer && !distractors.includes(a)).sort(() => Math.random() - 0.5);
+            distractors = distractors.concat(globalDistractors);
+        }
+
+        options.push(...distractors.slice(0, 3));
+        return options.sort(() => Math.random() - 0.5);
+    }
+
+    function renderNextQuestion() {
+        isQuestionLocked = false;
+        document.getElementById('counter-box').innerText = `${totalTested} 题`;
+        currentQ = getWeightedRandomQuestion();
+
+        document.getElementById('q-text').innerText = currentQ.q;
+        const container = document.getElementById('opt-container');
+        container.innerHTML = '';
+
+        let finalOpts = generateOptions(currentQ.a);
+
+        finalOpts.forEach(opt => {
+            const btn = document.createElement('button');
+            btn.className = 'btn-opt';
+            btn.innerText = opt;
+            btn.onclick = () => handleAnswer(opt, currentQ.a, btn);
+            container.appendChild(btn);
+        });
+
+        startQuestionTimer();
+    }
+
+    function startQuestionTimer() {
+        cancelAnimationFrame(questionTimerAnim);
+        const fill = document.getElementById('q-timer-fill');
+        qStartTimestamp = performance.now();
+        
+        function updateFill(now) {
+            if (isQuestionLocked) return; 
+            const elapsed = now - qStartTimestamp;
+            const progress = Math.max(0, 100 - (elapsed / timeLimitMs) * 100);
+            fill.style.width = `${progress}%`;
+
+            if (progress <= 0) handleAnswer(null, currentQ.a, null); 
+            else questionTimerAnim = requestAnimationFrame(updateFill);
+        }
+        questionTimerAnim = requestAnimationFrame(updateFill);
+    }
+
+    function handleAnswer(val, ans, btnElement) {
+        if (isQuestionLocked) return;
+        isQuestionLocked = true;
+        cancelAnimationFrame(questionTimerAnim);
+        totalTested++;
+
+        const isCorrect = (val === ans);
+
+        if (isCorrect) {
+            btnElement.classList.add('correct');
+            totalPerfect++;
+            currentQ.weight = Math.max(1, currentQ.weight - 0.5);
+        } else {
+            currentQ.weight *= 2; 
+            if (btnElement) {
+                btnElement.classList.add('wrong');
+                Array.from(document.querySelectorAll('.btn-opt')).forEach(b => {
+                    if(b.innerText === ans) b.classList.add('correct');
+                });
+            } else {
+                document.getElementById('q-timer-fill').style.background = 'var(--wrong)';
+                document.getElementById('q-timer-fill').style.width = '100%';
+            }
+        }
+
+        document.querySelectorAll('.btn-opt').forEach(b => b.disabled = true);
+        
+        setTimeout(() => {
+            document.getElementById('q-timer-fill').style.background = 'var(--accent)';
+            renderNextQuestion();
+        }, isCorrect ? 250 : 600);
+    }
+
+    function abortSession() {
+        if(confirm("确定终止记录？高权重的错题将会输出。")) {
+            clearInterval(sessionTimerInterval);
+            finishSession();
+        }
+    }
+
+    function finishSession() {
+        show('sc-result');
+        cancelAnimationFrame(questionTimerAnim);
+
+        document.getElementById('res-total').innerText = totalTested;
+        let acc = totalTested > 0 ? ((totalPerfect / totalTested) * 100).toFixed(1) : 0;
+        document.getElementById('res-acc').innerText = acc;
+
+        const weakSpots = activePool.filter(x => x.weight > 1).sort((a, b) => b.weight - a.weight);
+        const listDiv = document.getElementById('list-weak');
+        
+        if (weakSpots.length === 0) {
+            listDiv.innerHTML = '<div style="color:#10B981; font-weight:bold; padding:10px;">隔离测试全绿通过！选定范围内的肌肉记忆完全达标！</div>';
+        } else {
+            let html = '';
+            weakSpots.forEach(item => {
+                html += `<div class="rtag"><span>${item.text}</span> <span class="w-num">x${item.weight}</span></div>`;
+            });
+            listDiv.innerHTML = html;
+        }
+    }
+
+    function show(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+</script>
+</body>
+</html>
