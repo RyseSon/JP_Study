@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五十音进阶 - 长音定位与高质听音测试</title>
+    <style>
+        :root {
+            --primary: #0F172A;
+            --accent: #2563EB; 
+            --accent-hover: #1D4ED8;
+            --bg: #F8FAFC;
+            --card: #FFFFFF;
+            --text: #1E293B;
+            --correct: #10B981;
+            --wrong: #EF4444;
+            --border: #E2E8F0;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex; justify-content: center; align-items: center;
+            min-height: 100vh; padding: 20px; user-select: none;
+        }
+
+        .container {
+            background: var(--card);
+            width: 100%; max-width: 580px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            padding: 30px; position: relative;
+            border-top: 6px solid var(--accent);
+        }
+
+        .screen { display: none; }
+        .screen.active { display: block; }
+
+        h1 { font-size: 24px; text-align: center; margin-bottom: 8px; color: var(--primary); }
+        .subtitle { text-align: center; color: #64748B; font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
+
+        /* 按钮通用 */
+        .btn-main { background: var(--accent); color: white; padding: 18px; width: 100%; font-size: 18px; font-weight: bold; border-radius: 12px; border: none; cursor: pointer; transition: all 0.2s; margin-top: 15px; }
+        .btn-main:hover { background: var(--accent-hover); transform: translateY(-1px); }
+        .btn-main:active { transform: translateY(1px); }
+
+        /* 测验界面 */
+        .test-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 15px; }
+        .progress-badge { background: #DBEAFE; color: #1E40AF; padding: 6px 12px; border-radius: 8px; font-weight: bold; font-size: 15px; }
+        .score-badge { font-weight: bold; color: #64748B; font-size: 15px; }
+
+        .word-meta { text-align: center; margin-bottom: 25px; }
+        .word-kanji { font-size: 20px; font-weight: 700; color: #475569; margin-bottom: 5px; }
+        .word-meaning { font-size: 14px; color: #94A3B8; }
+
+        /* 假名点击区 */
+        .char-container { display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; }
+        .char-btn {
+            background: #FFFFFF; border: 2px solid var(--border);
+            border-radius: 12px; font-size: 36px; font-weight: bold; color: var(--primary);
+            width: 60px; height: 75px; display: flex; justify-content: center; align-items: center;
+            cursor: pointer; transition: all 0.15s; box-shadow: 0 4px 6px rgba(0,0,0,0.02);
+        }
+        .char-btn:hover:not(.locked) { border-color: #93C5FD; background: #EFF6FF; transform: translateY(-2px); }
+        .char-btn.selected { border-color: var(--accent); background: #DBEAFE; color: var(--accent); }
+        
+        /* 状态判定 */
+        .char-btn.is-correct { background: var(--correct); border-color: var(--correct); color: white; }
+        .char-btn.is-wrong { background: var(--wrong); border-color: var(--wrong); color: white; animation: shake 0.3s; }
+        .char-btn.missed-correct { border: 3px dashed var(--correct); color: var(--correct); } 
+
+        .feedback-box { text-align: center; font-size: 16px; font-weight: bold; margin-bottom: 15px; min-height: 24px; }
+        .feedback-correct { color: var(--correct); }
+        .feedback-wrong { color: var(--wrong); }
+
+        /* 答案与读音展示区 */
+        .answer-reveal-box {
+            display: none; 
+            background: #F1F5F9; border-radius: 12px; padding: 15px;
+            text-align: center; margin-bottom: 20px; border: 1px solid var(--border);
+        }
+        .answer-reveal-box.active { display: block; animation: fadeIn 0.3s; }
+        .romaji-text { font-size: 18px; font-weight: 700; color: #475569; margin-bottom: 12px; letter-spacing: 2px; }
+        
+        .btn-audio {
+            background: white; border: 2px solid #CBD5E1; color: var(--primary);
+            padding: 10px 20px; font-size: 15px; font-weight: bold; border-radius: 8px;
+            cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-audio:hover { border-color: var(--accent); color: var(--accent); background: #FFF; }
+        .btn-audio:active { transform: scale(0.95); }
+        
+        .audio-status { font-size: 12px; color: #94A3B8; margin-top: 8px; display: block; }
+
+        .rules-box { background: #F8FAFC; border: 1px solid var(--border); padding: 15px; border-radius: 10px; font-size: 13px; color: #475569; margin-bottom: 20px; }
+        .rules-box ul { padding-left: 20px; margin-top: 8px; }
+
+        /* 结果评估框 */
+        .result-box { background: #F8FAFC; border: 2px solid var(--border); border-radius: 15px; padding: 25px; text-align: center; margin-bottom: 25px; }
+        .rank-title { font-size: 28px; font-weight: 900; color: var(--primary); margin-bottom: 10px; }
+        .rank-desc { font-size: 15px; color: #475569; line-height: 1.6; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-4px); }
+            75% { transform: translateX(4px); }
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div id="sc-start" class="screen active">
+        <h1>长音定位与高质听音测试</h1>
+        <p class="subtitle">打通视觉与听觉，精准抓取影响日语词意核心的“长音”。</p>
+        
+        <div class="rules-box">
+            <strong>📝 测试规则：</strong>
+            <ul>
+                <li>系统将随机展示 10 个日常词汇。</li>
+                <li>请点击词组中<strong>“作为长音标记”</strong>的假名。</li>
+                <li>提交判定后，系统会展示正确读音，并调用<strong>高保真外部云端语音</strong>演示长音节拍。</li>
+            </ul>
+        </div>
+
+        <button class="btn-main" onclick="startTest()">🚀 开始随机 10 词测试</button>
+    </div>
+
+    <div id="sc-test" class="screen">
+        <div class="test-header">
+            <div class="progress-badge" id="progress-text">进度: 1 / 10</div>
+            <div class="score-badge" id="score-text">得分: 0</div>
+        </div>
+
+        <div class="word-meta">
+            <div class="word-kanji" id="word-kanji">漢字</div>
+            <div class="word-meaning" id="word-meaning">词义</div>
+        </div>
+
+        <div class="char-container" id="char-container">
+            </div>
+
+        <div class="feedback-box" id="feedback-box"></div>
+
+        <div class="answer-reveal-box" id="answer-reveal-box">
+            <div class="romaji-text" id="romaji-text">Ro-Ma-Ji</div>
+            <button class="btn-audio" onclick="playWordAudio()">🔊 播放标准发音</button>
+            <span class="audio-status" id="audio-status">将调用云端高保真语音...</span>
+        </div>
+
+        <button class="btn-main" id="btn-action" onclick="handleAction()">提交判定</button>
+    </div>
+
+    <div id="sc-result" class="screen">
+        <h1>测试能力结论</h1>
+        <p class="subtitle">基于本次 10 词长音捕获率的分析报告</p>
+
+        <div class="result-box">
+            <div class="rank-title" id="res-score">10 / 10</div>
+            <div class="rank-title" id="res-rank" style="font-size: 22px; margin-top: 15px;">S级 - 长音雷达</div>
+            <div class="rank-desc" id="res-desc">
+                你的大脑已经完美建立了日语长音的潜意识反射！
+            </div>
+        </div>
+
+        <button class="btn-main" onclick="location.reload()">🔄 换一批词组，再次测试</button>
+    </div>
+</div>
+
+<script>
+    const WORD_POOL = [
+        // a 段
+        { word: 'おかあさん', kanji: 'お母さん', meaning: '母亲', romaji: 'o ka a sa n', longVowelIndices: [2] },
+        { word: 'おばあさん', kanji: 'お祖母さん', meaning: '奶奶/外婆', romaji: 'o ba a sa n', longVowelIndices: [2] },
+        // i 段
+        { word: 'おにいさん', kanji: 'お兄さん', meaning: '哥哥', romaji: 'o ni i sa n', longVowelIndices: [2] },
+        { word: 'おじいさん', kanji: 'お祖父さん', meaning: '爷爷/外公', romaji: 'o ji i sa n', longVowelIndices: [2] },
+        { word: 'ちいさい', kanji: '小さい', meaning: '小的', romaji: 'chi i sa i', longVowelIndices: [1] }, 
+        // u 段
+        { word: 'くうき', kanji: '空気', meaning: '空气', romaji: 'ku u ki', longVowelIndices: [1] },
+        { word: 'すうがく', kanji: '数学', meaning: '数学', romaji: 'su u ga ku', longVowelIndices: [1] },
+        { word: 'ゆうべ', kanji: '夕べ', meaning: '昨晚', romaji: 'yu u be', longVowelIndices: [1] },
+        // e 段
+        { word: 'おねえさん', kanji: 'お姉さん', meaning: '姐姐', romaji: 'o ne e sa n', longVowelIndices: [2] },
+        { word: 'せんせい', kanji: '先生', meaning: '老师', romaji: 'se n se i (e-e长音)', longVowelIndices: [3] }, 
+        { word: 'がくせい', kanji: '学生', meaning: '学生', romaji: 'ga ku se i (e-e长音)', longVowelIndices: [3] },
+        { word: 'えいが', kanji: '映画', meaning: '电影', romaji: 'e i ga (e-e长音)', longVowelIndices: [1] }, 
+        { word: 'とけい', kanji: '時計', meaning: '手表/钟表', romaji: 'to ke i (e-e长音)', longVowelIndices: [2] },
+        // o 段
+        { word: 'おおきい', kanji: '大きい', meaning: '大的', romaji: 'o o ki i', longVowelIndices: [1, 3] }, 
+        { word: 'とおい', kanji: '遠い', meaning: '远的', romaji: 'to o i', longVowelIndices: [1] }, 
+        { word: 'おとうさん', kanji: 'お父さん', meaning: '父亲', romaji: 'o to u sa n (o-o长音)', longVowelIndices: [2] }, 
+        { word: 'ひこうき', kanji: '飛行機', meaning: '飞机', romaji: 'hi ko u ki (o-o长音)', longVowelIndices: [2] }, 
+        { word: 'ぼうし', kanji: '帽子', meaning: '帽子', romaji: 'bo u shi (o-o长音)', longVowelIndices: [1] },
+        { word: 'ほうき', kanji: '箒', meaning: '扫帚', romaji: 'ho u ki (o-o长音)', longVowelIndices: [1] },
+        { word: 'ありがとう', kanji: '有難う', meaning: '谢谢', romaji: 'a ri ga to u (o-o长音)', longVowelIndices: [4] }, 
+        // 片假名
+        { word: 'コーヒー', kanji: '珈琲', meaning: '咖啡', romaji: 'ko o hi i', longVowelIndices: [1, 3] }, 
+        { word: 'スーパー', kanji: 'Supermarket', meaning: '超市', romaji: 'su u pa a', longVowelIndices: [1, 3] }, 
+        { word: 'ケーキ', kanji: 'Cake', meaning: '蛋糕', romaji: 'ke e ki', longVowelIndices: [1] },
+        { word: 'ノート', kanji: 'Note', meaning: '笔记本', romaji: 'no o to', longVowelIndices: [1] },
+        { word: 'スポーツ', kanji: 'Sports', meaning: '体育运动', romaji: 'su po o tsu', longVowelIndices: [2] }, 
+        { word: 'タクシー', kanji: 'Taxi', meaning: '出租车', romaji: 'ta ku shi i', longVowelIndices: [3] }
+    ];
+
+    let testWords = [];
+    let currentIndex = 0;
+    let score = 0;
+    let currentState = 'answering'; 
+    let currentAudio = null; // 全局音频对象
+
+    function startTest() {
+        testWords = [...WORD_POOL].sort(() => Math.random() - 0.5).slice(0, 10);
+        currentIndex = 0;
+        score = 0;
+        show('sc-test');
+        loadQuestion();
+    }
+
+    function loadQuestion() {
+        currentState = 'answering';
+        const currentData = testWords[currentIndex];
+        
+        document.getElementById('progress-text').innerText = `进度: ${currentIndex + 1} / 10`;
+        document.getElementById('score-text').innerText = `得分: ${score}`;
+        document.getElementById('word-kanji').innerText = currentData.kanji || '-';
+        document.getElementById('word-meaning').innerText = currentData.meaning;
+        document.getElementById('feedback-box').innerHTML = '';
+        document.getElementById('audio-status').innerText = '将调用云端高保真语音...';
+        
+        document.getElementById('answer-reveal-box').classList.remove('active');
+        const btnAction = document.getElementById('btn-action');
+        btnAction.innerText = '提交判定';
+        btnAction.style.background = 'var(--accent)';
+
+        const container = document.getElementById('char-container');
+        container.innerHTML = '';
+
+        const chars = currentData.word.split('');
+        chars.forEach((char, index) => {
+            const btn = document.createElement('div');
+            btn.className = 'char-btn';
+            btn.innerText = char;
+            btn.dataset.index = index;
+            btn.onclick = () => toggleChar(btn);
+            container.appendChild(btn);
+        });
+    }
+
+    function toggleChar(btnElement) {
+        if (currentState !== 'answering') return;
+        btnElement.classList.toggle('selected');
+    }
+
+    function handleAction() {
+        if (currentState === 'answering') {
+            checkAnswer();
+        } else {
+            currentIndex++;
+            if (currentAudio) {
+                currentAudio.pause(); // 切题时打断正在播放的音频
+                currentAudio.currentTime = 0;
+            }
+            if (currentIndex < testWords.length) {
+                loadQuestion();
+            } else {
+                showConclusion();
+            }
+        }
+    }
+
+    function checkAnswer() {
+        const currentData = testWords[currentIndex];
+        const correctIndices = currentData.longVowelIndices;
+        
+        const selectedEls = Array.from(document.querySelectorAll('.char-btn.selected'));
+        const selectedIndices = selectedEls.map(el => parseInt(el.dataset.index));
+
+        const isPerfectMatch = 
+            selectedIndices.length === correctIndices.length && 
+            correctIndices.every(idx => selectedIndices.includes(idx));
+
+        const feedbackBox = document.getElementById('feedback-box');
+        
+        if (isPerfectMatch) {
+            score++;
+            feedbackBox.innerHTML = '<span class="feedback-correct">✅ 判定正确！精准捕捉到了长音。</span>';
+        } else {
+            feedbackBox.innerHTML = '<span class="feedback-wrong">❌ 判定失误。请留意虚线框或被标记的正确长音位置。</span>';
+        }
+
+        const allBtns = document.querySelectorAll('.char-btn');
+        allBtns.forEach(btn => {
+            btn.classList.add('locked');
+            const idx = parseInt(btn.dataset.index);
+            const isUserSelected = selectedIndices.includes(idx);
+            const isActuallyCorrect = correctIndices.includes(idx);
+
+            if (isUserSelected && isActuallyCorrect) {
+                btn.classList.add('is-correct');
+            } else if (isUserSelected && !isActuallyCorrect) {
+                btn.classList.add('is-wrong');
+            } else if (!isUserSelected && isActuallyCorrect) {
+                btn.classList.add('missed-correct');
+            }
+        });
+
+        document.getElementById('romaji-text').innerText = currentData.romaji;
+        document.getElementById('answer-reveal-box').classList.add('active');
+
+        // 自动触发播放
+        playWordAudio();
+
+        currentState = 'showing_result';
+        const btnAction = document.getElementById('btn-action');
+        btnAction.innerText = (currentIndex === testWords.length - 1) ? '查看最终结论' : '下一词 ➔';
+        btnAction.style.background = '#475569';
+    }
+
+    // 核心音频接入逻辑：调用外部高保真语音 API
+    function playWordAudio() {
+        const currentData = testWords[currentIndex];
+        const statusEl = document.getElementById('audio-status');
+        
+        // 如果有正在播放的音频，先停止
+        if (currentAudio) {
+            currentAudio.pause();
+            currentAudio.currentTime = 0;
+        }
+
+        // 使用 Google Translate 的开放 TTS 接口，发音极为自然
+        const audioUrl = `https://translate.google.com/translate_tts?ie=UTF-8&tl=ja&client=tw-ob&q=${encodeURIComponent(currentData.word)}`;
+        
+        currentAudio = new Audio(audioUrl);
+        statusEl.innerText = '🔊 正在播放云端语音...';
+        
+        currentAudio.play().then(() => {
+            currentAudio.onended = () => {
+                statusEl.innerText = '播放完毕，可再次点击播放';
+            };
+        }).catch(error => {
+            console.error("云端语音加载失败，回退至本地引擎:", error);
+            statusEl.innerText = '⚠️ 云端连接失败，已回退本地基础语音';
+            
+            // 保底方案：如果因为网络问题无法访问云端，无缝切换回本地引擎
+            window.speechSynthesis.cancel();
+            const utterance = new SpeechSynthesisUtterance(currentData.word);
+            utterance.lang = 'ja-JP';
+            utterance.rate = 0.85;
+            window.speechSynthesis.speak(utterance);
+        });
+    }
+
+    function showConclusion() {
+        if (currentAudio) currentAudio.pause();
+        window.speechSynthesis.cancel();
+        
+        show('sc-result');
+        document.getElementById('res-score').innerText = `${score} / 10`;
+
+        let rankTitle = '';
+        let rankDesc = '';
+
+        if (score === 10) {
+            rankTitle = 'S级 - 绝对音感';
+            rankDesc = '你的大脑已经完美建立了日语长音的潜意识反射！无论是平假名特殊的元音组合规则，还是片假名的直观拉长，你都了然于胸。继续保持！';
+        } else if (score >= 8) {
+            rankTitle = 'A级 - 优秀熟练';
+            rankDesc = '基本掌握了平片假名的长音规则，仅有偶尔失误。注意遇到像「え」段+「い」、「お」段+「う」这种容易与母语双元音混淆的情况，务必用耳朵验证发音。';
+        } else if (score >= 5) {
+            rankTitle = 'B级 - 尚需巩固';
+            rankDesc = '你对长音规则有了一定概念，但遇到具体词汇时仍会判断错误。建议重新复习长音的构成规律，并在后续测试中多点击发音去感受长音拖长的“节拍感”。';
+        } else {
+            rankTitle = 'C级 - 建议重塑基础';
+            rankDesc = '长音是日语听力核心，漏判长音会导致词意完全改变。建议返回教材死磕五大规则，并多听标准语音，重新构建大脑对节拍的敏感度。';
+        }
+
+        const rankColor = score >= 8 ? 'var(--correct)' : (score >= 5 ? '#F59E0B' : 'var(--wrong)');
+        const rankTitleEl = document.getElementById('res-rank');
+        rankTitleEl.innerText = rankTitle;
+        rankTitleEl.style.color = rankColor;
+        document.getElementById('res-desc').innerText = rankDesc;
+    }
+
+    function show(id) {
+        document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+        document.getElementById(id).classList.add('active');
+    }
+</script>
+</body>
+</html>
